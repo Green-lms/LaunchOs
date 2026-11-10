@@ -291,6 +291,25 @@ const DEMO_COHORTS = [
   { id:'c3', name:'Cohort 3 — Sep 2026',   startDate:'2026-09-01', endDate:'2027-02-28', status:'open',     capacity:15, founders:[],               trainers:['t4'],      description:'Third batch — open for applications',      stage:'Enrolments open' },
 ];
 
+// ── Persist founders / trainers / cohorts in this browser ─────
+// (Replaced by the backend API in Phase 4.)
+const ADMIN_DATA_KEY = 'los_admin_data_v1';
+function loadAdminData() {
+  try {
+    const d = JSON.parse(localStorage.getItem(ADMIN_DATA_KEY) || 'null');
+    if (!d) return;
+    [['founders', DEMO_FOUNDERS], ['trainers', DEMO_TRAINERS], ['cohorts', DEMO_COHORTS]].forEach(([k, arr]) => {
+      if (Array.isArray(d[k])) arr.splice(0, arr.length, ...d[k]);
+    });
+  } catch (e) { console.warn('Admin data could not be loaded', e); }
+}
+function saveAdminData() {
+  try {
+    localStorage.setItem(ADMIN_DATA_KEY, JSON.stringify({ founders: DEMO_FOUNDERS, trainers: DEMO_TRAINERS, cohorts: DEMO_COHORTS }));
+  } catch (e) { console.warn('Admin data could not be saved', e); }
+}
+loadAdminData();
+
 const TRAINER_MESSAGES = [
   { id:'tm1', from:'Dr. Meera Iyer',  fromId:'t1', to:'admin', subject:'Arjun needs extra SPARC™ session', body:'Hi, I reviewed Arjun SPARC™ script. The Probe stage is weak — he is not going deep enough into past failures. I would like to schedule an extra 60-min roleplay session this week. Can you approve the additional hours?', time:'3h ago', unread:true,  avatar:'MI', type:'trainer' },
   { id:'tm2', from:'Rajiv Nair',      fromId:'t2', to:'admin', subject:'Cohort 1 — Week 3 session notes', body:'Week 3 BMC session completed. All 4 founders in Cohort 1 have now finished Steps 1-8. Priya is outstanding — already at 100% BMC. Rahul is struggling with pricing — suggesting a 1:1 before Week 4.', time:'1d ago', unread:true,  avatar:'RN', type:'trainer' },
@@ -311,6 +330,11 @@ if (!portalState.trainerMsgsLoaded) {
 let currentTrainer = null;
 let currentCohort  = null;
 
+// Escape user-supplied text before inserting into HTML
+function esc(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
 // ── Navigation ────────────────────────────────────────────
 const NAV = [
   { group: 'Overview' },
@@ -321,7 +345,7 @@ const NAV = [
   { group: 'Communication' },
   { id:'inbox',        label:'Inbox',            icon:'✉',  bg:'var(--blbg)',   col:'var(--blu)',  badge:() => portalState.messages.filter(m=>m.unread).length, badgeCls:'warn' },
   { id:'compose',      label:'Send Email',       icon:'✉',  bg:'var(--tebg)',   col:'var(--tel)' },
-  { id:'appointments', label:'Appointments',     icon:'📅', bg:'var(--ambg)',   col:'var(--amb)',  badge:() => DEMO_APPTS.filter(a=>a.status==='pending').length, badgeCls:'warn' },
+  { id:'appointments', label:'Appointments',     icon:'📅', bg:'var(--ambg)',   col:'var(--amb)',  badge:() => portalState.appointments.filter(a=>a.status==='pending').length, badgeCls:'warn' },
   { id:'calendar',     label:'Calendar',         icon:'🗓', bg:'var(--gnbg)',   col:'var(--grn)' },
 
   { group: 'Management' },
@@ -337,7 +361,7 @@ const NAV = [
 // ── Render Sidebar ────────────────────────────────────────
 function renderSidebar() {
   const unread = portalState.messages.filter(m=>m.unread).length;
-  const pendingAppts = DEMO_APPTS.filter(a=>a.status==='pending').length;
+  const pendingAppts = portalState.appointments.filter(a=>a.status==='pending').length;
   return `
     <div class="sidebar">
       <div class="brand">
@@ -422,7 +446,7 @@ function renderDashboard() {
       <!-- Today's appointments -->
       <div class="card">
         <div class="card-title">📅 Upcoming appointments</div>
-        ${DEMO_APPTS.slice(0,3).map(a => `
+        ${portalState.appointments.slice(0,3).map(a => `
           <div class="slot">
             <div class="slot-time">${a.time}</div>
             <div class="slot-info">
@@ -617,12 +641,12 @@ function renderInbox() {
           ${portalState.messages.map(m => `
             <div class="msg-item ${m.unread?'unread':''} ${activeMessage===m.id?'active':''}"
               onclick="openMessage('${m.id}')" style="${activeMessage===m.id?'border-color:var(--acc);background:var(--accbg)':''}">
-              <div class="msg-avatar">${m.avatar}</div>
+              <div class="msg-avatar">${esc(m.avatar)}</div>
               <div class="msg-preview">
-                <div class="msg-name">${m.from}</div>
-                <div class="msg-text" style="font-weight:${m.unread?'600':'400'}">${m.subject}</div>
+                <div class="msg-name">${esc(m.from)}</div>
+                <div class="msg-text" style="font-weight:${m.unread?'600':'400'}">${esc(m.subject)}</div>
               </div>
-              <div class="msg-meta">${m.time}${m.unread?'<br><span style="color:var(--acc2);font-size:8px">●</span>':''}</div>
+              <div class="msg-meta">${esc(m.time)}${m.unread?'<br><span style="color:var(--acc2);font-size:8px">●</span>':''}</div>
             </div>`).join('')}
         </div>
       </div>
@@ -646,15 +670,15 @@ function renderMessageDetail(msgId) {
     <div class="card">
       <div class="flex-between" style="margin-bottom:12px">
         <div>
-          <div style="font-size:14px;font-weight:700;color:var(--t)">${m.subject}</div>
-          <div style="font-size:11px;color:var(--t3);margin-top:2px">From: ${m.from} · ${m.time}</div>
+          <div style="font-size:14px;font-weight:700;color:var(--t)">${esc(m.subject)}</div>
+          <div style="font-size:11px;color:var(--t3);margin-top:2px">From: ${esc(m.from)} · ${esc(m.time)}</div>
         </div>
         <div style="display:flex;gap:6px">
           <button class="btn btn-sm btn-a" onclick="replyToMessage('${m.id}')">↩ Reply</button>
           <button class="btn btn-sm" onclick="bookApptFromMsg('${m.fromId}','${m.from}')">📅 Book call</button>
         </div>
       </div>
-      <div style="font-size:12px;color:var(--t2);line-height:1.7;padding:12px;background:var(--bg3);border-radius:7px;margin-bottom:12px">${m.body}</div>
+      <div style="font-size:12px;color:var(--t2);line-height:1.7;padding:12px;background:var(--bg3);border-radius:7px;margin-bottom:12px;white-space:pre-wrap">${esc(m.body)}</div>
       <div>
         <div class="input-label">Reply</div>
         <textarea id="reply-body" placeholder="Type your reply…" style="min-height:80px"></textarea>
@@ -1462,6 +1486,7 @@ function assignFounderToCohort() {
   const founder= DEMO_FOUNDERS.find(f=>f.id===fId);
   if (cohort && !cohort.founders.includes(fId)) {
     cohort.founders.push(fId);
+    saveAdminData();
     if (res) { res.style.color='var(--grn)'; res.textContent = founder.name + ' added to ' + cohort.name.split(' — ')[0]; }
     setTimeout(() => { closeModal2(); navigate('cohorts'); }, 1200);
   } else {
@@ -1479,6 +1504,7 @@ function assignTrainerToCohort() {
   if (trainer && cohort && !trainer.cohorts.includes(cId)) {
     trainer.cohorts.push(cId);
     if (!cohort.trainers.includes(tId)) cohort.trainers.push(tId);
+    saveAdminData();
     if (res) { res.style.color='var(--grn)'; res.textContent = trainer.name + ' assigned to ' + cohort.name.split(' — ')[0]; }
     setTimeout(() => { closeModal2(); navigate('cohorts'); }, 1200);
   } else {
@@ -1495,6 +1521,7 @@ function assignFounderToTrainer() {
   const founder = DEMO_FOUNDERS.find(f=>f.id===fId);
   if (trainer && founder && !trainer.founders.includes(fId)) {
     trainer.founders.push(fId);
+    saveAdminData();
     if (res) { res.style.color='var(--grn)'; res.textContent = founder.name + ' assigned to ' + trainer.name; }
     setTimeout(() => { closeModal2(); navigate('trainers'); }, 1200);
   } else {
@@ -1511,6 +1538,7 @@ function createCohort() {
   if (!name) { if(res){res.textContent='Enter a name';res.style.color='var(--red)';}return; }
   const id = 'c_'+Date.now();
   DEMO_COHORTS.push({ id, name, description:desc||'', startDate:start||'TBD', endDate:'TBD', status:'planning', capacity:cap, founders:[], trainers:[], stage:'Not started' });
+  saveAdminData();
   if (res) { res.style.color='var(--grn)'; res.textContent='✓ Cohort created!'; }
   setTimeout(() => navigate('cohorts'), 1200);
 }
@@ -1528,6 +1556,7 @@ function addTrainer() {
   const avatar = name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
   const id = 't_'+Date.now();
   DEMO_TRAINERS.push({ id, name, email, phone:phone||'', role, specialty:spec||'', cohorts:[], founders:[], sessions:0, rating:null, city:city||'', avatar, status:'onboarding', joinDate:new Date().toISOString().slice(0,10), bio:bio||'' });
+  saveAdminData();
   if (res) { res.style.color='var(--grn)'; res.textContent='✓ '+name+' added to team!'; }
   setTimeout(() => navigate('trainers'), 1200);
 }
@@ -1659,8 +1688,10 @@ function sendQuickMsg(founderId, founderName) {
 
 function replyToMessage(msgId) {
   const m = portalState.messages.find(x=>x.id===msgId);
-  const body = document.getElementById('reply-body')?.value?.trim();
-  if (!body) return;
+  if (!m) return;
+  const box = document.getElementById('reply-body');
+  const body = box?.value?.trim();
+  if (!body) { if (box) { box.focus(); box.style.borderColor = 'var(--acc)'; } return; }
   const reply = {
     id: 'm_'+Date.now(), from:'Mentor/Admin', fromId:'admin', to:m.from,
     subject:'Re: '+m.subject, body, time:'Just now', unread:false, avatar:'ME',
@@ -1670,6 +1701,9 @@ function replyToMessage(msgId) {
   showFeedback('Reply sent!');
   navigate('inbox');
 }
+
+// Inbox "Send reply" button — same behaviour as replyToMessage
+function sendReply(msgId) { replyToMessage(msgId); }
 
 function bookAppt(founderId, founderName) {
   navigate('appointments');
@@ -1800,11 +1834,13 @@ Write the full email body only. Plain text. Warm but professional. 150-250 words
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:600,messages:[{role:'user',content:prompt}]}),
+      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true','anthropic-beta':'server-side-fallback-2026-07-01'},
+      body:JSON.stringify({model:'claude-opus-5-5',max_tokens:16000,fallbacks:'default',messages:[{role:'user',content:prompt}]}),
     });
     const data = await response.json();
-    if (body) body.value = data.content?.[0]?.text || 'Could not generate draft.';
+    const text = (data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('\n').trim();
+    if (body) body.value = text || (data.error?.message ? 'AI error: '+data.error.message : 'Could not generate draft.');
   } catch(e) {
     if (body) body.value = 'AI draft failed — check your API key.';
   }

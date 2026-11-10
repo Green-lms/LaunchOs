@@ -1106,7 +1106,8 @@ async function doLogin() {
   const pass  = document.getElementById('m-pass').value;
   if (!email || !pass) { mErr('Please enter email and password'); return; }
   const r = await apiReq('POST', '/api/auth/login', { email, password: pass });
-  if (r && r.success) { auth.set(r.data.token, r.data.user); closeModal(); updateUserDisplay(); }
+  const tok = r && (r.token || r.data?.token), usr = r && (r.user || r.data?.user);
+  if (tok) { auth.set(tok, usr); if (r.refresh) localStorage.setItem('los_refresh', r.refresh); closeModal(); updateUserDisplay(); }
   else mErr((r && r.error) || 'Login failed — check your credentials');
 }
 
@@ -1119,7 +1120,8 @@ async function doRegister() {
   if (!name || !email || !pass) { mErr('Please fill all fields'); return; }
   if (pass.length < 8)          { mErr('Password must be at least 8 characters'); return; }
   const r = await apiReq('POST', '/api/auth/register', { name, email, password: pass });
-  if (r && r.success) { auth.set(r.data.token, r.data.user); closeModal(); updateUserDisplay(); }
+  const tok = r && (r.token || r.data?.token), usr = r && (r.user || r.data?.user);
+  if (tok) { auth.set(tok, usr); if (r.refresh) localStorage.setItem('los_refresh', r.refresh); closeModal(); updateUserDisplay(); }
   else mErr((r && r.error) || 'Registration failed');
 }
 
@@ -1220,14 +1222,18 @@ const store = {
         capital: this.capital,
         competitor: this.competitor,
         mvp: this.mvp,
+        scripts: this.scripts,
+        chatHistory: (this.chatHistory || []).slice(-60),
+        savedAt: new Date().toISOString(),
       };
-      sessionStorage.setItem('launchos_state', JSON.stringify(data));
-    } catch(e) { /* ignore */ }
+      localStorage.setItem('launchos_state', JSON.stringify(data));
+    } catch(e) { console.warn('LaunchOS: could not save progress', e); }
   },
-  
+
   _restore() {
     try {
-      const saved = sessionStorage.getItem('launchos_state');
+      // localStorage survives closing the browser; fall back to an older tab-only save
+      const saved = localStorage.getItem('launchos_state') || sessionStorage.getItem('launchos_state');
       if (saved) {
         const data = JSON.parse(saved);
         Object.assign(this.founder, data.founder || {});
@@ -1238,12 +1244,83 @@ const store = {
         Object.assign(this.capital, data.capital || {});
         Object.assign(this.competitor, data.competitor || {});
         Object.assign(this.mvp, data.mvp || {});
+        Object.assign(this.scripts, data.scripts || {});
+        if (Array.isArray(data.chatHistory)) this.chatHistory = data.chatHistory;
       }
-    } catch(e) { /* ignore */ }
+    } catch(e) { console.warn('LaunchOS: could not restore progress', e); }
   }
 };
 
 store._restore();
+
+// ── Autosave ─────────────────────────────────────────────
+// Modules write to `store` directly, so save whenever the data changes:
+// on every edit (debounced), every few seconds (catches AI results), and on page close.
+const autosave = {
+  _last: '',
+  _timer: null,
+  snapshot() {
+    const cap = (typeof capState !== 'undefined')
+      ? JSON.stringify({ capState, custom: (typeof capCustomCategories !== 'undefined') ? capCustomCategories : [] })
+      : '';
+    return { main: JSON.stringify([store.founder, store.assessments, store.bmc, store.bmcStep, store.offer, store.capital, store.competitor, store.mvp, store.scripts, store.chatHistory]), cap };
+  },
+  disabled: false,
+  saveNow() {
+    if (this.disabled) return;
+    try {
+      const s = this.snapshot();
+      const key = s.main + '|' + s.cap;
+      if (key === this._last) return;
+      this._last = key;
+      store._persist();
+      if (s.cap) localStorage.setItem('los_capital_v1', s.cap);
+      const ind = document.getElementById('save-indicator');
+      if (ind) { ind.textContent = '✓ Saved'; ind.title = 'Saved in this browser at ' + new Date().toLocaleTimeString(); }
+    } catch (e) { console.warn('LaunchOS autosave failed', e); }
+  },
+  soon() { clearTimeout(this._timer); this._timer = setTimeout(() => this.saveNow(), 600); },
+};
+['input', 'change', 'click'].forEach(ev => document.addEventListener(ev, () => autosave.soon(), true));
+setInterval(() => autosave.saveNow(), 4000);
+window.addEventListener('beforeunload', () => autosave.saveNow());
+window.addEventListener('pagehide', () => autosave.saveNow());
+
+// ── Backup: export / import all LaunchOS data as a JSON file ──
+function exportAllData() {
+  autosave.saveNow();
+  const data = {};
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (/^(launchos_|los_)/.test(k) && !/^los_(ai_key|token|refresh)$/.test(k)) data[k] = localStorage.getItem(k);
+  }
+  const blob = new Blob([JSON.stringify({ app: 'LaunchOS', exportedAt: new Date().toISOString(), data }, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'LaunchOS-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+function importAllData() {
+  const inp = document.createElement('input');
+  inp.type = 'file'; inp.accept = 'application/json,.json';
+  inp.onchange = () => {
+    const f = inp.files?.[0]; if (!f) return;
+    const r = new FileReader();
+    r.onload = () => {
+      try {
+        const j = JSON.parse(r.result);
+        if (j.app !== 'LaunchOS' || !j.data) throw new Error('Not a LaunchOS backup file');
+        if (!confirm('Replace the data in this browser with this backup from ' + (j.exportedAt || 'unknown date') + '?')) return;
+        Object.entries(j.data).forEach(([k, v]) => { if (/^(launchos_|los_)/.test(k)) localStorage.setItem(k, v); });
+        autosave.disabled = true; // don't overwrite the imported data before the reload
+        location.reload();
+      } catch (e) { alert('Could not import backup: ' + e.message); }
+    };
+    r.readAsText(f);
+  };
+  inp.click();
+}
 
 // ═══════════════════════════════════════
 // LaunchOS™ — AI Service
@@ -1282,8 +1359,8 @@ const AI_PROVIDERS = {
     keyLabel:    'Anthropic API Key',
     keyPrefix:   'sk-ant-',
     keyHint:     'Get from: console.anthropic.com',
-    models:      ['claude-opus-4-5', 'claude-sonnet-4-5', 'claude-haiku-4-5-20251001'],
-    defaultModel:'claude-sonnet-4-5',
+    models:      ['claude-opus-5-5', 'claude-sonnet-5-5', 'claude-haiku-5-5'],
+    defaultModel:'claude-opus-5-5',
     docsUrl:     'https://console.anthropic.com',
   },
   openai: {
@@ -1347,7 +1424,11 @@ const AI_PROVIDERS = {
 const aiConfig = {
   provider:    localStorage.getItem('los_ai_provider')    || 'claude',
   apiKey:      localStorage.getItem('los_ai_key')         || '',
-  model:       localStorage.getItem('los_ai_model')       || 'claude-sonnet-4-5',
+  model:       (() => {
+    // Saved Claude models that are retired/deprecated are moved to the current default
+    const m = localStorage.getItem('los_ai_model') || 'claude-opus-5-5';
+    return (m.startsWith('claude-') && !['claude-opus-5-5','claude-sonnet-5-5','claude-haiku-5-5'].includes(m)) ? 'claude-opus-5-5' : m;
+  })(),
   customUrl:   localStorage.getItem('los_ai_custom_url')  || '',
   customModel: localStorage.getItem('los_ai_custom_model')|| '',
 
@@ -1387,8 +1468,18 @@ async function aiProviderFetch(messages, system, jsonMode = false) {
   if (provider === 'claude') {
     headers['x-api-key']         = apiKey;
     headers['anthropic-version'] = '2023-06-01';
-    body = { model: effectiveModel, max_tokens: 1500, system: sysPrompt, messages };
-    extract = (d) => d.content?.[0]?.text || d.error?.message || 'No response.';
+    // Required for calling the API directly from a browser page (CORS)
+    headers['anthropic-dangerous-direct-browser-access'] = 'true';
+    // Server-side fallback if a request is declined by a safety classifier
+    headers['anthropic-beta'] = 'server-side-fallback-2026-07-01';
+    body = { model: effectiveModel, max_tokens: 16000, system: sysPrompt, messages, fallbacks: 'default' };
+    // Current models return a thinking block before the text — read the text block(s)
+    extract = (d) => {
+      if (d.type === 'error' || d.error) return 'AI error: ' + (d.error?.message || 'unknown error');
+      if (d.stop_reason === 'refusal') return 'The AI declined this request. Try rephrasing it.';
+      const text = (d.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n').trim();
+      return text || 'No response.';
+    };
   }
 
   // ── OpenAI / GPT / OpenAI-compatible ────────────────────
@@ -1451,7 +1542,8 @@ async function callAI(prompt, conversationHistory = null) {
     const messages = conversationHistory
       ? conversationHistory
       : [{ role: 'user', content: prompt }];
-    return await aiProviderFetch(messages, SYSTEM_PROMPT, false);
+    const ctx = '\n\nTHIS FOUNDER: ' + founderBiz() + '\nUse ' + founderCurrency().label + ' for all money amounts unless the founder says otherwise. Tailor everything to this founder\'s industry and market — never assume they run an accelerator.';
+    return await aiProviderFetch(messages, SYSTEM_PROMPT + ctx, false);
   } catch (err) {
     return 'Connection error: ' + err.message + '. Check your API key and network.';
   }
@@ -1462,7 +1554,8 @@ async function callAIJSON(prompt) {
   if (!aiConfig.isConfigured) return null;
   try {
     const messages = [{ role: 'user', content: prompt }];
-    const raw = await aiProviderFetch(messages, SYSTEM_PROMPT, true);
+    const ctx = '\n\nTHIS FOUNDER: ' + founderBiz() + '\nUse ' + founderCurrency().label + ' for all money amounts.';
+    const raw = await aiProviderFetch(messages, SYSTEM_PROMPT + ctx, true);
     try {
       return JSON.parse(raw.replace(/```json|```/g, '').trim());
     } catch {
@@ -1706,10 +1799,22 @@ async function genGuarantee() {
   );
 }
 
+// Describe the founder's own business (not the accelerator) + their chosen currency
+function founderBiz() {
+  const b = store.bmc || {};
+  const parts = [store.founder?.businessType, b[0], b[1], b[4]].filter(x => x && String(x).trim());
+  return parts.length ? parts.map(x => String(x).trim().slice(0, 200)).join(' | ') : 'the founder\'s startup (details not yet filled in — ask them to complete the BMC)';
+}
+function founderCurrency() {
+  const code = (typeof capState !== 'undefined' && capState.currency) || 'INR';
+  const sym = (typeof getCurrencySymbol === 'function') ? getCurrencySymbol() : code;
+  return { code, sym, label: code + ' (' + sym + ')' };
+}
+
 async function genPricing() {
   return callAI(
-    `Build a 3-tier pricing strategy for a startup accelerator programme targeting the Indian market. ` +
-    `Include: founding price (₹), standard price (₹), VIP/premium price (₹). ` +
+    `Build a 3-tier pricing strategy for this business: ${founderBiz()}. ` +
+    `Use currency ${founderCurrency().label} for every amount. Include: founding price, standard price, VIP/premium price. ` +
     `For each tier: rationale, what to include, expected conversion rate, monthly revenue at 5/10/20 clients. ` +
     `Also include: value anchor strategy, price objection prevention technique. Plain text.`
   );
@@ -1718,7 +1823,7 @@ async function genPricing() {
 // ── Discovery Call ────────────────────
 async function genDiscoverySection(section, niche, problem, offer, price) {
   return callAI(
-    `Write a discovery call script section for a startup accelerator.\n` +
+    `Write a discovery call script section for this business: ${founderBiz()}.\n` +
     `Section: ${section}\n` +
     `Niche: ${niche}, Problem: ${problem}, Offer: ${offer}, Investment: ${price}\n` +
     `Write the actual script with specific questions and talking points. 4–6 lines. Conversational. Plain text.`
@@ -1728,7 +1833,7 @@ async function genDiscoverySection(section, niche, problem, offer, price) {
 // ── VSL ───────────────────────────────
 async function genVSLAct(act, niche, promise, story, offer) {
   return callAI(
-    `Write VSL (Video Sales Letter) script act for a startup accelerator programme.\n` +
+    `Write a VSL (Video Sales Letter) script act for this business: ${founderBiz()}.\n` +
     `Act: ${act}\n` +
     `Niche: ${niche}, Big promise: ${promise}, Founder story: ${story}, Offer: ${offer}\n` +
     `Write the actual spoken script. Engaging, direct, conversational. 5–8 lines. Plain text.`
@@ -1757,7 +1862,7 @@ async function genOutboundTouch(touch, positioning, channel) {
 // ── Inbound ───────────────────────────
 async function genInboundAsset(asset, hook, audience) {
   return callAI(
-    `Inbound marketing asset for a startup accelerator.\nAsset: ${asset}\n` +
+    `Inbound marketing asset for this business: ${founderBiz()}.\nAsset: ${asset}\n` +
     `Hook: ${hook}, Audience: ${audience}\nWrite actual copy. Direct response. Plain text.`
   );
 }
@@ -1766,11 +1871,11 @@ async function genInboundAsset(asset, hook, audience) {
 async function genCapitalBudget(inputs) {
   return callAIJSON(
     `Startup financial advisor. Generate minimum capital budget and distribution for:\n` +
-    `Business type: ${inputs.type}\nCountry/currency: ${inputs.country}\n` +
+    `Business type: ${inputs.type}\nCountry/currency: ${inputs.country || founderCurrency().label}\n` +
     `Target MRR year 1: ${inputs.tmr}\nTeam size: ${inputs.team}\n` +
     `Primary cost driver: ${inputs.cost}\nDesired runway: ${inputs.runway} months\n\n` +
     `Return JSON:\n` +
-    `{"minBudget":"₹X","recBudget":"₹X","breakeven":"X clients","runway":"X months",` +
+    `{"minBudget":"${founderCurrency().sym}X","recBudget":"${founderCurrency().sym}X","breakeven":"X clients","runway":"X months",` +
     `"distribution":[{"label":"Technology/Tools","pct":15,"color":"#6c5ce7"},` +
     `{"label":"Marketing/Ads","pct":25,"color":"#ffca28"},` +
     `{"label":"Operations","pct":20,"color":"#00e676"},` +
@@ -1787,7 +1892,7 @@ async function genCompetitorStudy(inputs) {
     `Competitive intelligence analyst. Market: ${inputs.market}. ` +
     `Our positioning: ${inputs.positioning}. Price: ${inputs.price}. Audience: ${inputs.audience}.\n\n` +
     `Return JSON:\n` +
-    `{"competitors":[{"name":"Name","price":"₹X","target":"audience","valueScore":7,"priceScore":8,` +
+    `{"competitors":[{"name":"Name","price":"${founderCurrency().sym}X","target":"audience","valueScore":7,"priceScore":8,` +
     `"strength":"key strength","weakness":"key gap","threat":"low/medium/high"}],` +
     `"ourBrand":{"name":"Our Brand","priceScore":5,"valueScore":9},` +
     `"swot":{"strengths":["S1","S2","S3"],"weaknesses":["W1","W2"],"opportunities":["O1","O2"],"threats":["T1","T2"]},` +
@@ -1842,9 +1947,29 @@ function thinking(id, label = 'Generating') {
   setHTML(id, `<span class="thinking">${label}</span>`);
 }
 
+function escHTML(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
 function renderText(id, text) {
   const e = el(id);
-  if (e) e.innerHTML = text.replace(/\n/g, '<br>');
+  text = String(text ?? '');
+  if (e) e.innerHTML = escHTML(text).replace(/\n/g, '<br>');
+  // Remember every AI output so it is still there after switching panels or reloading
+  const key = typeof id === 'string' ? id.replace(/^#/, '') : (e && e.id);
+  const isNotice = /^(⚙️ No AI provider|Connection error|AI error|The AI declined|No response\.)/.test(text.trim());
+  if (key && text.trim() && !isNotice) { store.scripts[key] = text; autosave.soon(); }
+}
+// Put remembered AI outputs back into a freshly rendered panel
+function restoreOutputs(panelEl) {
+  Object.entries(store.scripts || {}).forEach(([key, text]) => {
+    if (typeof text !== 'string' || !text.trim()) return;
+    const e = panelEl.querySelector('#' + CSS.escape(key));
+    if (!e || e.textContent.trim()) return;
+    e.innerHTML = escHTML(text).replace(/\n/g, '<br>');
+    for (let p = e; p && p !== panelEl; p = p.parentElement) {
+      if (p.style && p.style.display === 'none') p.style.display = '';
+    }
+  });
 }
 
 function createEl(tag, props = {}, children = []) {
@@ -1969,7 +2094,7 @@ const NAV_ITEMS = [
   { id: 'empathy', label: 'Empathy Mapping', icon: '🧠', iconBg: 'var(--pkbg)', iconColor: 'var(--pnk)', badge: 'NEW', badgeCls: 'new' },
 
   { group: 'Financials' },
-  { id: 'capital',     label: 'Capital Budget',       icon: '₹',  iconBg: 'var(--gobg)',   iconColor: 'var(--gld)',   badge: 'NEW', badgeCls: 'new' },
+  { id: 'capital',     label: 'Capital Budget',       icon: '💰', iconBg: 'var(--gobg)',   iconColor: 'var(--gld)',   badge: 'NEW', badgeCls: 'new' },
   { id: 'competitor',  label: 'Competitor Study',     icon: '⊞',  iconBg: 'var(--cobg)',   iconColor: 'var(--cor)',   badge: 'NEW', badgeCls: 'new' },
   { id: 'mvp',         label: 'MVP + ROI Model',      icon: '◈',  iconBg: 'var(--ambg)',   iconColor: 'var(--amb)',   badge: 'S8' },
   { id: 'scale',       label: 'Scale Engine',         icon: '▲',  iconBg: 'var(--cobg)',   iconColor: 'var(--cor)',   badge: 'S9' },
@@ -2044,6 +2169,9 @@ function renderTopbar() {
         <div class="toggle-track"><div class="toggle-thumb"></div></div>
         <span id="theme-label">Dark</span>
       </div>
+      <span id="save-indicator" title="Your work is saved automatically in this browser" style="font-family:var(--font-mono);font-size:9px;color:var(--grn);white-space:nowrap">✓ Auto-save on</span>
+      <button class="btn" onclick="window.exportAllData()" title="Download a backup file of all your LaunchOS work" style="padding:6px 10px;font-size:11px">💾 Backup</button>
+      <button class="btn" onclick="window.importAllData()" title="Restore your work from a backup file" style="padding:6px 10px;font-size:11px">↺ Restore</button>
       <button class="btn" id="export-pdf-btn" onclick="window.showExportMenu()" title="Download reports as PDF" style="padding:6px 10px;font-size:11px">⬇ Export PDF</button>
       <button class="btn btn-primary" id="btn-ai-coach">&#x2726; AI Coach</button>
       <div id="topbar-user" style="margin-left:6px;font-size:11px;color:var(--t3)"></div>
@@ -2549,6 +2677,8 @@ function bindBMC() {
     const panel = document.getElementById('panel-bmc');
     if (panel) { panel.innerHTML = renderBMC(); bindBMC(); }
   }
+  // Save as you type, so nothing is lost if the page is closed
+  document.getElementById('bmc-ta')?.addEventListener('input', saveStep);
   document.querySelectorAll('.step-tab[data-step]').forEach(tab => {
     tab.addEventListener('click', () => goto(parseInt(tab.dataset.step)));
   });
@@ -2661,17 +2791,17 @@ function renderOffer() {
         <div class="pricing-grid">
           <div class="pricing-tier" style="border-color:rgba(38,198,218,.2)">
             <div class="pricing-tier-label" style="color:var(--tel)">Founding Offer</div>
-            <input type="text" id="o-p1" placeholder="e.g. ₹25,000–₹49,000" value="${o.foundingPrice}">
+            <input type="text" id="o-p1" placeholder="e.g. ${founderCurrency().sym}25,000–${founderCurrency().sym}49,000" value="${o.foundingPrice}">
             <textarea id="o-p1i" style="min-height:60px;margin-top:6px" placeholder="What's included…">${o.foundingIncludes}</textarea>
           </div>
           <div class="pricing-tier" style="border-color:rgba(108,92,231,.2)">
             <div class="pricing-tier-label" style="color:var(--acc2)">Standard Offer</div>
-            <input type="text" id="o-p2" placeholder="e.g. ₹75,000–₹1,20,000" value="${o.standardPrice}">
+            <input type="text" id="o-p2" placeholder="e.g. ${founderCurrency().sym}75,000–${founderCurrency().sym}1,20,000" value="${o.standardPrice}">
             <textarea id="o-p2i" style="min-height:60px;margin-top:6px" placeholder="What's included…">${o.standardIncludes}</textarea>
           </div>
           <div class="pricing-tier" style="border-color:rgba(255,215,64,.2)">
             <div class="pricing-tier-label" style="color:var(--gld)">VIP / Premium</div>
-            <input type="text" id="o-p3" placeholder="e.g. ₹2,00,000+" value="${o.vipPrice}">
+            <input type="text" id="o-p3" placeholder="e.g. ${founderCurrency().sym}2,00,000+" value="${o.vipPrice}">
             <textarea id="o-p3i" style="min-height:60px;margin-top:6px" placeholder="What's included…">${o.vipIncludes}</textarea>
           </div>
         </div>
@@ -2881,7 +3011,7 @@ function bindDiscovery() {
     const niche = document.getElementById('dc-niche').value || 'startup founders';
     const prob  = document.getElementById('dc-prob').value  || 'cannot get first clients';
     const offer = document.getElementById('dc-offer').value || 'accelerator programme';
-    const price = document.getElementById('dc-price').value || '₹75,000';
+    const price = document.getElementById('dc-price').value || 'the price set in Offer Design';
     show('#disc-out');
     DISC_IDS.forEach(id => setHTML(id, '<span class="thinking">Writing from BMC…</span>'));
     for (let i = 0; i < DISC_SECTIONS.length; i++) {
@@ -3174,7 +3304,7 @@ function bindSPARC() {
   document.getElementById('sparc-gen-btn')?.addEventListener('click', async () => {
     const { ctx, raw, coverage } = getBMCContext();
     const niche = document.getElementById('sp-niche').value || raw.niche || 'startup founders who cannot get clients';
-    const offer = document.getElementById('sp-offer').value || raw.offer || 'startup accelerator programme';
+    const offer = document.getElementById('sp-offer').value || raw.offer || founderBiz();
     show('#sparc-out');
     SPARC_DATA.forEach(s => setHTML(`sparc-${s.l.toLowerCase()}`, '<span class="thinking">Building from BMC…</span>'));
 
@@ -3395,6 +3525,18 @@ const capState = {
 
 // Init all categories as selected
 CAP_CATEGORIES.forEach(c => { capState.active[c.key] = true; capState.amounts[c.key] = ''; });
+
+// Restore saved capital plan (saved by the autosave above)
+try {
+  const savedCap = JSON.parse(localStorage.getItem('los_capital_v1') || 'null');
+  if (savedCap?.capState) {
+    const s = savedCap.capState;
+    ['currency','totalBudget','runway','teamSize','businessDesc','result'].forEach(k => { if (s[k] !== undefined) capState[k] = s[k]; });
+    Object.assign(capState.active,  s.active  || {});
+    Object.assign(capState.amounts, s.amounts || {});
+  }
+  if (Array.isArray(savedCap?.custom)) { capCustomCategories.push(...savedCap.custom); capCustomCounter = savedCap.custom.length; }
+} catch (e) { console.warn('Capital plan could not be restored', e); }
 // capGetAllCategories() is defined after CAP_CATEGORIES and capCustomCategories are set
 
 function getCurrencySymbol() {
@@ -3861,7 +4003,7 @@ function renderCompetitor() {
       <div class="grid-2">
         ${inputGroup('Your market / industry', 'comp-mkt', 'e.g. Online business coaching for startup founders in India', c.market)}
         ${inputGroup('Your unique positioning', 'comp-pos', 'e.g. AI-powered accelerator for first-time founders', c.positioning)}
-        ${inputGroup('Your price point', 'comp-price', 'e.g. ₹75,000 per cohort', c.price)}
+        ${inputGroup('Your price point', 'comp-price', 'e.g. ' + founderCurrency().sym + '75,000 per customer', c.price)}
         ${inputGroup('Your target audience', 'comp-aud', 'e.g. First-time founders, age 25–40, India', c.audience)}
       </div>
       <button class="btn btn-primary" id="comp-gen-btn">✦ Generate competitor study + SWOT</button>
@@ -3987,10 +4129,10 @@ function renderMVP() {
         ${textareaGroup('MVP — core deliverable only (simplest version that delivers the result)', 'm-def', 'e.g. A 6-week group coaching programme — weekly Zoom sessions + WhatsApp support + 3 frameworks…', m.description, 60)}
         <div>
           <div class="grid-2">
-            ${inputGroup('MVP price per client', 'm-price', 'e.g. ₹30,000', m.price)}
+            ${inputGroup('MVP price per client', 'm-price', 'e.g. ' + founderCurrency().sym + '30,000', m.price)}
             ${inputGroup('Clients needed to break even', 'm-clients', 'e.g. 5 clients', m.clients)}
-            ${inputGroup('Total initial investment required', 'm-invest', 'e.g. ₹50,000', m.investment)}
-            ${inputGroup('Monthly operating cost (OPEX)', 'm-opex', 'e.g. ₹15,000/month', m.opex)}
+            ${inputGroup('Total initial investment required', 'm-invest', 'e.g. ' + founderCurrency().sym + '50,000', m.investment)}
+            ${inputGroup('Monthly operating cost (OPEX)', 'm-opex', 'e.g. ' + founderCurrency().sym + '15,000/month', m.opex)}
           </div>
         </div>
       </div>
@@ -4202,7 +4344,7 @@ const surveyState = {
 
   load() {
     try {
-      const saved = sessionStorage.getItem('los_survey');
+      const saved = (localStorage.getItem('los_survey') || sessionStorage.getItem('los_survey'));
       if (saved) {
         const d = JSON.parse(saved);
         Object.assign(this, d);
@@ -4212,7 +4354,7 @@ const surveyState = {
 
   save() {
     try {
-      sessionStorage.setItem('los_survey', JSON.stringify({
+      localStorage.setItem('los_survey', JSON.stringify({
         title: this.title, description: this.description,
         targetGroup: this.targetGroup, questions: this.questions,
         goal: this.goal, responses: this.responses, analysis: this.analysis,
@@ -5606,7 +5748,7 @@ function renderMoodleView() {
         <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:10px">
           <div>
             <div class="input-label">Programme / course name</div>
-            <input type="text" id="sync-course-name" value="${(() => { try { const b = JSON.parse(sessionStorage.getItem('los_state')||'{}'); return b.bmc && b.bmc[4] ? b.bmc[4].slice(0,60) : 'LaunchOS™ Startup Accelerator'; } catch(e){ return 'LaunchOS™ Startup Accelerator'; } })()}" placeholder="e.g. LaunchOS™ Startup Accelerator Batch 1">
+            <input type="text" id="sync-course-name" value="${(() => { try { const b = JSON.parse(localStorage.getItem('launchos_state')||'{}'); return b.bmc && b.bmc[4] ? b.bmc[4].slice(0,60) : 'LaunchOS™ Startup Accelerator'; } catch(e){ return 'LaunchOS™ Startup Accelerator'; } })()}" placeholder="e.g. LaunchOS™ Startup Accelerator Batch 1">
           </div>
           <div>
             <div class="input-label">Short course code</div>
@@ -5812,25 +5954,25 @@ const empathyState = {
   },
 
   // Stored content per zone
-  content: JSON.parse(sessionStorage.getItem('los_empathy_content') || '{}'),
+  content: JSON.parse((localStorage.getItem('los_empathy_content') ?? sessionStorage.getItem('los_empathy_content')) || '{}'),
 
   // Persona name
-  personaName: sessionStorage.getItem('los_empathy_persona') || '',
+  personaName: (localStorage.getItem('los_empathy_persona') ?? sessionStorage.getItem('los_empathy_persona')) || '',
 
   // AI insights
-  insights: sessionStorage.getItem('los_empathy_insights') || '',
+  insights: (localStorage.getItem('los_empathy_insights') ?? sessionStorage.getItem('los_empathy_insights')) || '',
 
   // Trainer review
-  trainerReview: JSON.parse(sessionStorage.getItem('los_empathy_review') || '{}'),
+  trainerReview: JSON.parse((localStorage.getItem('los_empathy_review') ?? sessionStorage.getItem('los_empathy_review')) || '{}'),
 
   // Current view: 'map' | 'deep-dive' | 'insights' | 'review'
   view: 'map',
 
   save() {
-    sessionStorage.setItem('los_empathy_content', JSON.stringify(this.content));
-    sessionStorage.setItem('los_empathy_persona', this.personaName);
-    sessionStorage.setItem('los_empathy_insights', this.insights);
-    sessionStorage.setItem('los_empathy_review',   JSON.stringify(this.trainerReview));
+    localStorage.setItem('los_empathy_content', JSON.stringify(this.content));
+    localStorage.setItem('los_empathy_persona', this.personaName);
+    localStorage.setItem('los_empathy_insights', this.insights);
+    localStorage.setItem('los_empathy_review',   JSON.stringify(this.trainerReview));
   },
 
   get completedZones() {
@@ -6656,6 +6798,7 @@ function navigate(panelId) {
 
   // Bind interactivity
   PANELS[panelId].bind();
+  try { restoreOutputs(panelEl); } catch (e) { console.warn('Could not restore saved outputs', e); }
 
   // Scroll to top
   contentEl.scrollTop = 0;
@@ -6919,6 +7062,8 @@ window.empathyState       = empathyState;
 // Required because the app is wrapped in an IIFE
 window.toggleTheme   = toggleTheme;
 window.navigate      = navigate;
+window.exportAllData = exportAllData;
+window.importAllData = importAllData;
 window.doLogin       = doLogin;
 window.doRegister    = doRegister;
 window.doLogout      = doLogout;

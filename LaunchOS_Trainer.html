@@ -262,6 +262,37 @@ const RESOURCES = [
 
 const STAGE_NAMES = ['Assessments','BMC','Offer','Discovery','VSL','SPARC™','Outbound','MVP','Scale'];
 
+// ── Persistence (this browser only — replaced by the backend API in Phase 4) ──
+const SENT_MSGS = [];
+const TRAINER_DATA_KEY = 'los_trainer_data_v1';
+function loadTrainerData(){
+  try{
+    const d = JSON.parse(localStorage.getItem(TRAINER_DATA_KEY)||'null');
+    if(!d) return;
+    if(Array.isArray(d.readIds)) INBOX_MSGS.forEach(m=>{ if(d.readIds.includes(m.id)) m.unread=false; });
+    if(Array.isArray(d.sent)) SENT_MSGS.splice(0, SENT_MSGS.length, ...d.sent);
+    if(Array.isArray(d.upcoming)) UPCOMING_SESSIONS.splice(0, UPCOMING_SESSIONS.length, ...d.upcoming);
+    if(d.founderSessions) MY_FOUNDERS.forEach(f=>{ if(Array.isArray(d.founderSessions[f.id])) f.sessions = d.founderSessions[f.id]; });
+  }catch(e){ console.warn('Trainer data could not be loaded', e); }
+}
+function saveTrainerData(){
+  try{
+    const founderSessions = {}; MY_FOUNDERS.forEach(f=>{ founderSessions[f.id] = f.sessions; });
+    localStorage.setItem(TRAINER_DATA_KEY, JSON.stringify({
+      readIds: INBOX_MSGS.filter(m=>!m.unread).map(m=>m.id),
+      sent: SENT_MSGS, upcoming: UPCOMING_SESSIONS, founderSessions,
+    }));
+  }catch(e){ console.warn('Trainer data could not be saved', e); }
+}
+loadTrainerData();
+
+// Escape user-supplied text before inserting into HTML
+function esc(s){ return String(s ?? '').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function val(id){ return (document.getElementById(id)?.value || '').trim(); }
+function refreshNav(){ const sb=document.querySelector('.sidebar'); if(sb) sb.outerHTML = renderSidebar(); }
+function fmtDate(d){ return d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'}); }
+function fmtTime(d){ return d.toLocaleTimeString([], {hour:'numeric',minute:'2-digit'}); }
+
 const NAV = [
   {group:'My Portal'},
   {id:'dashboard',   label:'Dashboard',        icon:'⌂',  bg:'var(--accbg)', col:'var(--acc2)'},
@@ -433,7 +464,7 @@ function renderMyFounders(){
           </div>`).join('')}
       </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap">
-        <button class="btn btn-sm btn-a" onclick="event.stopPropagation();state.focusFounder='${f.id}';go('progress')">📈 Progress</button>
+        <button class="btn btn-sm btn-a" onclick="event.stopPropagation();openProgressFor('${f.id}')">📈 Progress</button>
         <button class="btn btn-sm btn-tel" onclick="event.stopPropagation();openSessionNotes('${f.id}')">📝 Notes</button>
         <button class="btn btn-sm" onclick="event.stopPropagation();openComposeTo('${f.id}','${f.name}')">✉ Message</button>
         <button class="btn btn-sm btn-success" onclick="event.stopPropagation();scheduleSession('${f.id}','${f.name}')">📅 Book</button>
@@ -501,7 +532,7 @@ function renderSessionPlanBuilder(){
   return `<div class="grid-2">
     <div>
       <div class="input-group"><div class="input-label">Founder</div>
-        <select onchange="state.planFounder=this.value;refreshPanel()">
+        <select onchange="setPlanFounder(this.value)">
           ${MY_FOUNDERS.map(x=>`<option value="${x.id}" ${fId===x.id?'selected':''}>${x.name}</option>`).join('')}
         </select>
       </div>
@@ -545,7 +576,7 @@ function renderProgress(){
   const savedNote = state.notes[fId]||'';
   return `
   <div class="flex-row" style="margin-bottom:14px">
-    <select onchange="state.focusFounder=this.value;refreshPanel()" style="flex:1;max-width:280px">
+    <select onchange="setFocusFounder(this.value)" style="flex:1;max-width:280px">
       ${MY_FOUNDERS.map(x=>`<option value="${x.id}" ${fId===x.id?'selected':''}>${x.name}</option>`).join('')}
     </select>
     <button class="btn btn-sm btn-tel" onclick="scheduleSession('${f.id}','${f.name}')">📅 Book session</button>
@@ -606,24 +637,35 @@ function renderProgress(){
 
 function renderInbox(){
   const tab = state.inboxTab;
-  const filtered = tab==='all'?INBOX_MSGS:INBOX_MSGS.filter(m=>m.type===tab);
-  const counts = {all:INBOX_MSGS.length, founder:INBOX_MSGS.filter(m=>m.type==='founder').length, admin:INBOX_MSGS.filter(m=>m.type==='admin').length, trainer:INBOX_MSGS.filter(m=>m.type==='trainer').length};
+  const filtered = tab==='all'?INBOX_MSGS:tab==='sent'?SENT_MSGS:INBOX_MSGS.filter(m=>m.type===tab);
+  const counts = {all:INBOX_MSGS.length, founder:INBOX_MSGS.filter(m=>m.type==='founder').length, admin:INBOX_MSGS.filter(m=>m.type==='admin').length, trainer:INBOX_MSGS.filter(m=>m.type==='trainer').length, sent:SENT_MSGS.length};
   return `
   <div class="tab-row">
     <button class="tab-btn ${tab==='all'?'active':''}" onclick="setInboxTab('all')">All (${counts.all})</button>
     <button class="tab-btn ${tab==='founder'?'active':''}" onclick="setInboxTab('founder')">Founders (${counts.founder})</button>
     <button class="tab-btn ${tab==='admin'?'active':''}" onclick="setInboxTab('admin')">Admin (${counts.admin})</button>
     <button class="tab-btn ${tab==='trainer'?'active':''}" onclick="setInboxTab('trainer')">Trainers (${counts.trainer})</button>
+    <button class="tab-btn ${tab==='sent'?'active':''}" onclick="setInboxTab('sent')">Sent (${counts.sent})</button>
   </div>
-  ${filtered.map(m=>`
-    <div class="msg-item ${m.unread?'unread':''}" onclick="openMessage('${m.id}')">
-      <div class="msg-avatar" style="${m.type==='admin'?'background:var(--cobg);color:var(--cor)':m.type==='trainer'?'background:var(--pubg);color:var(--pur)':''}">${m.avatar}</div>
+  ${filtered.length===0?`<div class="card" style="text-align:center;color:var(--t3);font-size:12px">No messages here yet</div>`:''}
+  ${filtered.map(m=>m.type==='sent'?`
+    <div class="msg-item">
+      <div class="msg-avatar">${esc(ME.avatar)}</div>
       <div class="msg-preview">
-        <div class="msg-name">${m.from} <span class="tag ${m.type==='admin'?'tag-cor':m.type==='trainer'?'tag-pur':'tag-tel'}" style="font-size:8px;padding:1px 5px;margin-left:4px">${m.type}</span></div>
-        <div style="font-size:12px;font-weight:600;color:var(--t2);margin-bottom:2px">${m.subject}</div>
-        <div class="msg-text">${m.body.slice(0,90)}…</div>
+        <div class="msg-name">To: ${esc(m.to)} <span class="tag tag-acc" style="font-size:8px;padding:1px 5px;margin-left:4px">sent</span></div>
+        <div style="font-size:12px;font-weight:600;color:var(--t2);margin-bottom:2px">${esc(m.subject)}</div>
+        <div class="msg-text" style="white-space:pre-wrap">${esc(m.body)}</div>
       </div>
-      <div class="msg-meta">${m.time}${m.unread?'<br><span style="color:var(--tel);font-size:8px">NEW</span>':''}</div>
+      <div class="msg-meta">${esc(m.time)}</div>
+    </div>`:`
+    <div class="msg-item ${m.unread?'unread':''}" onclick="openMessage('${m.id}')">
+      <div class="msg-avatar" style="${m.type==='admin'?'background:var(--cobg);color:var(--cor)':m.type==='trainer'?'background:var(--pubg);color:var(--pur)':''}">${esc(m.avatar)}</div>
+      <div class="msg-preview">
+        <div class="msg-name">${esc(m.from)} <span class="tag ${m.type==='admin'?'tag-cor':m.type==='trainer'?'tag-pur':'tag-tel'}" style="font-size:8px;padding:1px 5px;margin-left:4px">${m.type}</span></div>
+        <div style="font-size:12px;font-weight:600;color:var(--t2);margin-bottom:2px">${esc(m.subject)}</div>
+        <div class="msg-text">${esc(m.body.slice(0,90))}…</div>
+      </div>
+      <div class="msg-meta">${esc(m.time)}${m.unread?'<br><span style="color:var(--tel);font-size:8px">NEW</span>':''}</div>
     </div>`).join('')}
   <div style="margin-top:12px">
     <button class="btn btn-primary" onclick="openCompose()">+ Compose Message</button>
@@ -641,10 +683,10 @@ function renderFeedback(){
     <div class="card-sub">Record post-session outcomes and progress notes</div>
     <div class="grid-2">
       <div class="input-group"><div class="input-label">Founder</div>
-        <select>${MY_FOUNDERS.map(f=>`<option>${f.name}</option>`).join('')}</select>
+        <select id="fb-founder">${MY_FOUNDERS.map(f=>`<option value="${f.id}">${esc(f.name)}</option>`).join('')}</select>
       </div>
       <div class="input-group"><div class="input-label">Session Type</div>
-        <select><option>SPARC™ Roleplay</option><option>Script Review</option><option>Pricing Workshop</option><option>Progress Check-in</option></select>
+        <select id="fb-type"><option>SPARC™ Roleplay</option><option>Script Review</option><option>Pricing Workshop</option><option>Progress Check-in</option></select>
       </div>
     </div>
     <div class="input-group">
@@ -653,9 +695,9 @@ function renderFeedback(){
         ${[1,2,3,4,5].map(n=>`<button class="btn btn-sm" id="star-${n}" onclick="setRating(${n})">${'⭐'.repeat(n)}</button>`).join('')}
       </div>
     </div>
-    <div class="input-group"><div class="input-label">What went well?</div><textarea placeholder="What did the founder nail? What showed real breakthrough?"></textarea></div>
-    <div class="input-group"><div class="input-label">What needs work?</div><textarea placeholder="What skills/mindset gaps are still showing?"></textarea></div>
-    <div class="input-group"><div class="input-label">Action items for next session</div><textarea placeholder="What must the founder do before the next session?"></textarea></div>
+    <div class="input-group"><div class="input-label">What went well?</div><textarea id="fb-well" placeholder="What did the founder nail? What showed real breakthrough?"></textarea></div>
+    <div class="input-group"><div class="input-label">What needs work?</div><textarea id="fb-improve" placeholder="What skills/mindset gaps are still showing?"></textarea></div>
+    <div class="input-group"><div class="input-label">Action items for next session</div><textarea id="fb-actions" placeholder="What must the founder do before the next session?"></textarea></div>
     <div class="input-group">
       <div class="input-label">Escalate to Admin?</div>
       <div style="display:flex;gap:8px;margin-top:4px">
@@ -663,7 +705,7 @@ function renderFeedback(){
         <button class="btn btn-sm btn-a" id="esc-no" onclick="setEscalate(false)">✓ All good</button>
       </div>
     </div>
-    <button class="btn btn-primary" onclick="showToast('Session feedback saved ✓')">Save Feedback</button>
+    <button class="btn btn-primary" onclick="saveFeedback()">Save Feedback</button>
   </div>
   <div class="card">
     <div class="card-title">Recent Feedback</div>
@@ -856,6 +898,9 @@ function go(panelId){
 function refreshPanel(){go(state.panel);}
 function setSessTab(t){state.sessTab=t;refreshPanel();}
 function setInboxTab(t){state.inboxTab=t;refreshPanel();}
+function setFocusFounder(id){state.focusFounder=id;refreshPanel();}
+function setPlanFounder(id){state.planFounder=id;refreshPanel();}
+function openProgressFor(id){state.focusFounder=id;go('progress');}
 
 function toggleCheck(id){
   state.checks[id]=!state.checks[id];
@@ -866,14 +911,34 @@ function saveMentorNote(fId){
   const el=document.getElementById('mentor-note-'+fId);
   if(el){state.notes[fId]=el.value;state.saveNotes();showToast('Notes saved ✓');}
 }
+let currentRating = 0, currentEscalate = false;
 function setRating(n){
+  currentRating = n;
   document.querySelectorAll('[id^="star-"]').forEach((b,i)=>{
     b.style.opacity=i+1<=n?'1':'0.4';
   });
 }
 function setEscalate(v){
-  document.getElementById('esc-yes')?.classList.toggle('btn-warn',v);
-  document.getElementById('esc-no')?.classList.toggle('btn-a',!v);
+  currentEscalate = !!v;
+  const yes=document.getElementById('esc-yes'), no=document.getElementById('esc-no');
+  if(yes) yes.style.opacity = v?'1':'0.45';
+  if(no)  no.style.opacity  = v?'0.45':'1';
+}
+function saveFeedback(){
+  const f = MY_FOUNDERS.find(x=>x.id===val('fb-founder'));
+  if(!f){ showToast('Choose a founder', false); return; }
+  if(!currentRating){ showToast('Pick a rating (1–5 stars)', false); return; }
+  const well=val('fb-well'), improve=val('fb-improve'), actions=val('fb-actions');
+  const notes = [well&&('Went well: '+well), improve&&('Needs work: '+improve), actions&&('Actions: '+actions)].filter(Boolean).join(' · ') || '—';
+  f.sessions.push({ date:new Date().toISOString().slice(0,10), type:val('fb-type')||'Session', duration:60, notes, rating:currentRating, escalated:currentEscalate });
+  if(currentEscalate){
+    SENT_MSGS.unshift({ id:'s_'+Date.now(), type:'sent', to:'Admin', subject:'⚠ Founder flagged: '+f.name, body:notes, time:new Date().toLocaleString() });
+  }
+  saveTrainerData();
+  const flagged = currentEscalate;
+  currentRating=0; currentEscalate=false;
+  showToast(flagged?'Feedback saved and admin flagged ✓':'Session feedback saved ✓');
+  refreshPanel();
 }
 
 function openFounderDetail(fId){
@@ -900,7 +965,7 @@ function openFounderDetail(fId){
       </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px">
         <button class="btn btn-sm btn-primary" onclick="closeModal();openComposeTo('${f.id}','${f.name}')">✉ Message</button>
-        <button class="btn btn-sm btn-tel" onclick="closeModal();state.focusFounder='${f.id}';go('progress')">📈 Full Notes</button>
+        <button class="btn btn-sm btn-tel" onclick="closeModal();openProgressFor('${f.id}')">📈 Full Notes</button>
         <button class="btn btn-sm btn-success" onclick="closeModal();scheduleSession('${f.id}','${f.name}')">📅 Book Session</button>
       </div>
     </div>
@@ -909,19 +974,19 @@ function openFounderDetail(fId){
 
 function openMessage(id){
   const m=INBOX_MSGS.find(x=>x.id===id);if(!m)return;
-  m.unread=false;
+  if(m.unread){ m.unread=false; saveTrainerData(); refreshNav(); if(state.panel==='inbox'||state.panel==='dashboard') refreshPanel(); }
   document.body.insertAdjacentHTML('beforeend',`<div class="overlay" id="msg-modal" onclick="if(event.target.id==='msg-modal')closeModal()">
     <div class="modal">
-      <div class="flex-between" style="margin-bottom:14px"><div class="modal-title">${m.subject}</div><button class="btn btn-sm" onclick="closeModal()">✕</button></div>
+      <div class="flex-between" style="margin-bottom:14px"><div class="modal-title">${esc(m.subject)}</div><button class="btn btn-sm" onclick="closeModal()">✕</button></div>
       <div class="flex-row" style="margin-bottom:12px">
-        <div class="msg-avatar">${m.avatar}</div>
-        <div><div style="font-size:12px;font-weight:700;color:var(--t)">${m.from}</div><div style="font-size:10px;color:var(--t3)">${m.time}</div></div>
+        <div class="msg-avatar">${esc(m.avatar)}</div>
+        <div><div style="font-size:12px;font-weight:700;color:var(--t)">${esc(m.from)}</div><div style="font-size:10px;color:var(--t3)">${esc(m.time)}</div></div>
       </div>
-      <div style="font-size:12px;color:var(--t2);line-height:1.75;background:var(--bg3);border-radius:7px;padding:14px;margin-bottom:14px">${m.body}</div>
+      <div style="font-size:12px;color:var(--t2);line-height:1.75;background:var(--bg3);border-radius:7px;padding:14px;margin-bottom:14px;white-space:pre-wrap">${esc(m.body)}</div>
       <div class="input-label">Reply</div>
       <textarea id="reply-text" placeholder="Type your reply…" style="min-height:80px;margin-bottom:8px"></textarea>
       <div style="display:flex;gap:6px">
-        <button class="btn btn-primary" onclick="closeModal();showToast('Reply sent ✓')">Send Reply</button>
+        <button class="btn btn-primary" onclick="sendTrainerReply('${m.id}')">Send Reply</button>
         <button class="btn" onclick="closeModal()">Close</button>
       </div>
     </div>
@@ -933,12 +998,12 @@ function openCompose(){
     <div class="modal">
       <div class="flex-between" style="margin-bottom:14px"><div class="modal-title">New Message</div><button class="btn btn-sm" onclick="closeModal()">✕</button></div>
       <div class="input-group"><div class="input-label">To</div>
-        <select>${MY_FOUNDERS.map(f=>`<option>${f.name} (Founder)</option>`).join('')}<option>Sushma (Admin)</option><option>Rajiv Nair (Trainer)</option></select>
+        <select id="compose-to">${MY_FOUNDERS.map(f=>`<option>${esc(f.name)} (Founder)</option>`).join('')}<option>Sushma (Admin)</option><option>Rajiv Nair (Trainer)</option></select>
       </div>
-      <div class="input-group"><div class="input-label">Subject</div><input type="text" placeholder="Session notes, check-in, resource share…"></div>
-      <div class="input-group"><div class="input-label">Message</div><textarea style="min-height:120px" placeholder="Write your message…"></textarea></div>
+      <div class="input-group"><div class="input-label">Subject</div><input type="text" id="compose-subj" placeholder="Session notes, check-in, resource share…"></div>
+      <div class="input-group"><div class="input-label">Message</div><textarea id="compose-body" style="min-height:120px" placeholder="Write your message…"></textarea></div>
       <div style="display:flex;gap:6px">
-        <button class="btn btn-primary" onclick="closeModal();showToast('Message sent ✓')">Send</button>
+        <button class="btn btn-primary" onclick="sendCompose()">Send</button>
         <button class="btn" onclick="closeModal()">Cancel</button>
       </div>
     </div>
@@ -948,16 +1013,37 @@ function openCompose(){
 function openComposeTo(fId,fName){
   document.body.insertAdjacentHTML('beforeend',`<div class="overlay" id="compose-modal" onclick="if(event.target.id==='compose-modal')closeModal()">
     <div class="modal">
-      <div class="flex-between" style="margin-bottom:14px"><div class="modal-title">Message ${fName}</div><button class="btn btn-sm" onclick="closeModal()">✕</button></div>
-      <div class="input-group"><div class="input-label">To</div><input type="text" value="${fName}" readonly style="background:var(--bg4)"></div>
-      <div class="input-group"><div class="input-label">Subject</div><input type="text" placeholder="Session update, resource, feedback…"></div>
-      <div class="input-group"><div class="input-label">Message</div><textarea style="min-height:120px" placeholder="Write your message…"></textarea></div>
+      <div class="flex-between" style="margin-bottom:14px"><div class="modal-title">Message ${esc(fName)}</div><button class="btn btn-sm" onclick="closeModal()">✕</button></div>
+      <div class="input-group"><div class="input-label">To</div><input type="text" id="compose-to" value="${esc(fName)}" readonly style="background:var(--bg4)"></div>
+      <div class="input-group"><div class="input-label">Subject</div><input type="text" id="compose-subj" placeholder="Session update, resource, feedback…"></div>
+      <div class="input-group"><div class="input-label">Message</div><textarea id="compose-body" style="min-height:120px" placeholder="Write your message…"></textarea></div>
       <div style="display:flex;gap:6px">
-        <button class="btn btn-primary" onclick="closeModal();showToast('Message sent to ${fName} \u2713')">Send</button>
+        <button class="btn btn-primary" onclick="sendCompose()">Send</button>
         <button class="btn" onclick="closeModal()">Cancel</button>
       </div>
     </div>
   </div>`);
+}
+
+// Save an outgoing message to the Sent box (delivered via the backend in Phase 4)
+function storeSent(to, subject, body){
+  SENT_MSGS.unshift({ id:'s_'+Date.now(), type:'sent', to, subject: subject || '(no subject)', body, time: new Date().toLocaleString() });
+  saveTrainerData();
+}
+function sendCompose(){
+  const to=val('compose-to'), subject=val('compose-subj'), body=val('compose-body');
+  if(!body){ showToast('Write a message first', false); document.getElementById('compose-body')?.focus(); return; }
+  storeSent(to.replace(/ \((Founder|Admin|Trainer)\)$/,''), subject, body);
+  closeModal(); showToast('Message saved to Sent ✓');
+  if(state.panel==='inbox') refreshPanel();
+}
+function sendTrainerReply(msgId){
+  const m=INBOX_MSGS.find(x=>x.id===msgId); if(!m) return;
+  const body=val('reply-text');
+  if(!body){ showToast('Write a reply first', false); document.getElementById('reply-text')?.focus(); return; }
+  storeSent(m.from, 'Re: '+m.subject, body);
+  closeModal(); showToast('Reply saved to Sent ✓');
+  if(state.panel==='inbox') refreshPanel();
 }
 
 function openSessionNotes(fId){
@@ -966,10 +1052,10 @@ function openSessionNotes(fId){
   const nextS=UPCOMING_SESSIONS.find(s=>s.founderId===fId);
   document.body.insertAdjacentHTML('beforeend',`<div class="overlay" id="snotes-modal" onclick="if(event.target.id==='snotes-modal')closeModal()">
     <div class="modal">
-      <div class="flex-between" style="margin-bottom:14px"><div class="modal-title">Session Prep — ${f.name}</div><button class="btn btn-sm" onclick="closeModal()">✕</button></div>
-      ${nextS?`<div class="alert alert-info" style="margin-bottom:12px">Next session: ${nextS.type} · ${nextS.date} · ${nextS.time}</div>`:''}
+      <div class="flex-between" style="margin-bottom:14px"><div class="modal-title">Session Prep — ${esc(f.name)}</div><button class="btn btn-sm" onclick="closeModal()">✕</button></div>
+      ${nextS?`<div class="alert alert-info" style="margin-bottom:12px">Next session: ${esc(nextS.type)} · ${esc(nextS.date)} · ${esc(nextS.time)}</div>`:''}
       <div class="input-group"><div class="input-label">Prep Notes</div>
-        <textarea id="prep-note-${fId}" style="min-height:130px" placeholder="What to cover, questions to ask, roleplay scenarios to run…">${saved}</textarea>
+        <textarea id="prep-note-${fId}" style="min-height:130px" placeholder="What to cover, questions to ask, roleplay scenarios to run…">${esc(saved)}</textarea>
       </div>
       <div style="display:flex;gap:6px">
         <button class="btn btn-primary" onclick="savePrepNote('${fId}')">Save</button>
@@ -981,26 +1067,44 @@ function openSessionNotes(fId){
 
 function savePrepNote(fId){
   const el=document.getElementById('prep-note-'+fId);
-  if(el){localStorage.setItem('prep_'+fId,el.value);closeModal();showToast('Prep notes saved \u2713');}
+  if(el){localStorage.setItem('prep_'+fId,el.value);closeModal();showToast('Prep notes saved ✓');}
 }
 
+let sessionFormRating = 0;
+function setSessionRating(n){
+  sessionFormRating = n;
+  document.querySelectorAll('#sf-rating .btn').forEach((b,i)=>{ b.style.opacity = i+1===n ? '1' : '.4'; });
+}
 function openSessionForm(sId){
   const s=UPCOMING_SESSIONS.find(x=>x.id===sId);if(!s)return;
+  sessionFormRating = 0;
   document.body.insertAdjacentHTML('beforeend',`<div class="overlay" id="sf-modal" onclick="if(event.target.id==='sf-modal')closeModal()">
     <div class="modal">
-      <div class="flex-between" style="margin-bottom:14px"><div class="modal-title">▶ ${s.type} — ${s.founder}</div><button class="btn btn-sm" onclick="closeModal()">✕</button></div>
+      <div class="flex-between" style="margin-bottom:14px"><div class="modal-title">▶ ${esc(s.type)} — ${esc(s.founder)}</div><button class="btn btn-sm" onclick="closeModal()">✕</button></div>
       <div class="alert alert-ok" style="margin-bottom:12px">Session started · ${new Date().toLocaleTimeString()}</div>
       <div class="input-group"><div class="input-label">Rating</div>
-        <div style="display:flex;gap:6px;margin-top:2px">${[1,2,3,4,5].map(n=>`<button class="btn btn-sm" onclick="this.parentElement.querySelectorAll('.btn').forEach(b=>b.style.opacity='.4');this.style.opacity='1'">${'⭐'.repeat(n)}</button>`).join('')}</div>
+        <div id="sf-rating" style="display:flex;gap:6px;margin-top:2px">${[1,2,3,4,5].map(n=>`<button class="btn btn-sm" onclick="setSessionRating(${n})">${'⭐'.repeat(n)}</button>`).join('')}</div>
       </div>
-      <div class="input-group"><div class="input-label">Session Notes</div><textarea style="min-height:90px" placeholder="Key observations, founder wins, areas to work on…"></textarea></div>
-      <div class="input-group"><div class="input-label">Action Items (for founder)</div><textarea style="min-height:60px" placeholder="What must the founder do before next session?"></textarea></div>
+      <div class="input-group"><div class="input-label">Session Notes</div><textarea id="sf-notes" style="min-height:90px" placeholder="Key observations, founder wins, areas to work on…"></textarea></div>
+      <div class="input-group"><div class="input-label">Action Items (for founder)</div><textarea id="sf-actions" style="min-height:60px" placeholder="What must the founder do before next session?"></textarea></div>
       <div style="display:flex;gap:6px">
-        <button class="btn btn-primary" onclick="closeModal();showToast('Session completed and logged \u2713')">Complete Session</button>
+        <button class="btn btn-primary" onclick="completeSession('${s.id}')">Complete Session</button>
         <button class="btn" onclick="closeModal()">Cancel</button>
       </div>
     </div>
   </div>`);
+}
+function completeSession(sId){
+  const idx=UPCOMING_SESSIONS.findIndex(x=>x.id===sId); if(idx<0) return;
+  if(!sessionFormRating){ showToast('Pick a rating (1–5 stars)', false); return; }
+  const s=UPCOMING_SESSIONS[idx];
+  const f=MY_FOUNDERS.find(x=>x.id===s.founderId);
+  const notes=val('sf-notes'), actions=val('sf-actions');
+  if(f) f.sessions.push({ date:new Date().toISOString().slice(0,10), type:s.type, duration:s.duration, notes:[notes, actions&&('Actions: '+actions)].filter(Boolean).join(' · ') || '—', rating:sessionFormRating });
+  UPCOMING_SESSIONS.splice(idx,1);
+  saveTrainerData();
+  closeModal(); showToast('Session completed and logged ✓');
+  refreshNav(); refreshPanel();
 }
 
 function scheduleSession(fId,fName){
@@ -1008,27 +1112,38 @@ function scheduleSession(fId,fName){
     <div class="modal">
       <div class="flex-between" style="margin-bottom:14px"><div class="modal-title">Schedule New Session</div><button class="btn btn-sm" onclick="closeModal()">✕</button></div>
       <div class="input-group"><div class="input-label">Founder</div>
-        <select>${MY_FOUNDERS.map(f=>`<option value="${f.id}" ${f.id===fId?'selected':''}>${f.name}</option>`).join('')}</select>
+        <select id="sched-founder">${MY_FOUNDERS.map(f=>`<option value="${f.id}" ${f.id===fId?'selected':''}>${esc(f.name)}</option>`).join('')}</select>
       </div>
       <div class="input-group"><div class="input-label">Session Type</div>
-        <select><option>SPARC™ Roleplay</option><option>Script Review</option><option>Pricing Workshop</option><option>Progress Check-in</option><option>VSL Critique</option></select>
+        <select id="sched-type"><option>SPARC™ Roleplay</option><option>Script Review</option><option>Pricing Workshop</option><option>Progress Check-in</option><option>VSL Critique</option></select>
       </div>
       <div class="grid-2">
-        <div class="input-group"><div class="input-label">Date & Time</div><input type="datetime-local"></div>
-        <div class="input-group"><div class="input-label">Duration</div><select><option>30 min</option><option>45 min</option><option selected>60 min</option><option>90 min</option></select></div>
+        <div class="input-group"><div class="input-label">Date & Time</div><input type="datetime-local" id="sched-dt"></div>
+        <div class="input-group"><div class="input-label">Duration</div><select id="sched-dur"><option value="30">30 min</option><option value="45">45 min</option><option value="60" selected>60 min</option><option value="90">90 min</option></select></div>
       </div>
-      <div class="input-group"><div class="input-label">Prep Note for Founder</div><textarea placeholder="What should the founder prepare?"></textarea></div>
+      <div class="input-group"><div class="input-label">Prep Note for Founder</div><textarea id="sched-prep" placeholder="What should the founder prepare?"></textarea></div>
       <div style="display:flex;gap:6px">
-        <button class="btn btn-primary" onclick="closeModal();showToast('Session scheduled and invite sent \u2713')">Schedule & Notify</button>
+        <button class="btn btn-primary" onclick="saveScheduledSession()">Schedule</button>
         <button class="btn" onclick="closeModal()">Cancel</button>
       </div>
     </div>
   </div>`);
 }
+function saveScheduledSession(){
+  const f=MY_FOUNDERS.find(x=>x.id===val('sched-founder'));
+  const dtRaw=val('sched-dt');
+  if(!f){ showToast('Choose a founder', false); return; }
+  if(!dtRaw){ showToast('Choose a date and time', false); document.getElementById('sched-dt')?.focus(); return; }
+  const dt=new Date(dtRaw);
+  UPCOMING_SESSIONS.push({ id:'s_'+Date.now(), founder:f.name, founderId:f.id, type:val('sched-type')||'Session', date:fmtDate(dt), time:fmtTime(dt), when:dt.toISOString(), duration:parseInt(val('sched-dur')||'60'), prep:val('sched-prep')||'—', status:'pending' });
+  saveTrainerData();
+  closeModal(); showToast('Session scheduled ✓ (founder notification arrives with the backend)');
+  refreshNav(); if(state.panel==='sessions'||state.panel==='dashboard') refreshPanel();
+}
 
 function confirmSession(sId){
   const s=UPCOMING_SESSIONS.find(x=>x.id===sId);
-  if(s){s.status='confirmed';go('sessions');showToast('Session confirmed \u2713');}
+  if(s){s.status='confirmed';saveTrainerData();refreshNav();go('sessions');showToast('Session confirmed ✓');}
 }
 
 function closeModal(){
@@ -1047,7 +1162,8 @@ function showToast(msg,ok=true){
 const _fns={go,toggleTrainerTheme,toggleCheck,saveMentorNote,setRating,setEscalate,
   openFounderDetail,openMessage,openCompose,openComposeTo,openSessionNotes,savePrepNote,
   openSessionForm,scheduleSession,confirmSession,closeModal,showToast,
-  setSessTab,setInboxTab,refreshPanel};
+  setSessTab,setInboxTab,refreshPanel,setFocusFounder,setPlanFounder,openProgressFor,
+  saveFeedback,sendCompose,sendTrainerReply,setSessionRating,completeSession,saveScheduledSession};
 Object.keys(_fns).forEach(k=>{window[k]=_fns[k];});
 
 function boot(){
