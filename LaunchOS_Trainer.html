@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LaunchOS™ — Trainer &amp; Mentor Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Cabinet+Grotesk:wght@300;400;500;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+
+:root {
+  --bg:#07080c;--bg2:#0d0f18;--bg3:#131620;--bg4:#191d28;--bg5:#202535;
+  --br:#1e2335;--br2:#2a3050;--br3:#374060;
+  --t:#e4e8f5;--t2:#8892b0;--t3:#4a5580;--t4:#2e3655;
+  --acc:#6c5ce7;--acc2:#a29bfe;--accbg:rgba(108,92,231,.12);
+  --grn:#00e676;--gnbg:rgba(0,230,118,.1);
+  --amb:#ffca28;--ambg:rgba(255,202,40,.1);
+  --cor:#ff7043;--cobg:rgba(255,112,67,.1);
+  --blu:#2979ff;--blbg:rgba(41,121,255,.1);
+  --tel:#26c6da;--tebg:rgba(38,198,218,.1);
+  --pnk:#f06292;--pkbg:rgba(240,98,146,.1);
+  --red:#ef5350;--rebg:rgba(239,83,80,.1);
+  --gld:#ffd740;--gobg:rgba(255,215,64,.1);
+  --pur:#d63af9;--pubg:rgba(214,58,249,.1);
+  --font-display:'Syne',sans-serif;--font-body:'Cabinet Grotesk',sans-serif;--font-mono:'JetBrains Mono',monospace;
+}
+html[data-theme="light"] {
+  --bg:#f5f6fa;--bg2:#fff;--bg3:#eef0f7;--bg4:#e4e7f2;--bg5:#d8dcee;
+  --br:#dde1f0;--br2:#c8ceea;--br3:#b0b8e0;
+  --t:#111827;--t2:#374151;--t3:#6b7280;--t4:#9ca3af;
+  --acc:#6c5ce7;--acc2:#5b4bd4;--accbg:rgba(108,92,231,.1);
+  --grn:#00a854;--gnbg:rgba(0,168,84,.1);
+  --amb:#c88a00;--ambg:rgba(200,138,0,.1);
+  --cor:#e84e2a;--cobg:rgba(232,78,42,.1);
+  --red:#dc2626;--rebg:rgba(220,38,38,.1);
+  --gld:#d97706;--gobg:rgba(217,119,6,.1);
+  --pur:#b020e0;--pubg:rgba(176,32,224,.1);
+  --tel:#0891b2;--tebg:rgba(8,145,178,.1);
+  --pnk:#db2777;--pkbg:rgba(219,39,119,.1);
+  --blu:#1a5fd4;--blbg:rgba(26,95,212,.1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:var(--font-body);background:var(--bg);color:var(--t);font-size:13px;line-height:1.6;-webkit-font-smoothing:antialiased}
+button{cursor:pointer;font-family:var(--font-body)}
+input,textarea,select{font-family:var(--font-body)}
+a{color:var(--acc2);text-decoration:none}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--br2);border-radius:2px}
+#app{display:flex;height:100vh;overflow:hidden}
+.sidebar{width:224px;min-width:224px;background:var(--bg2);border-right:1px solid var(--br);display:flex;flex-direction:column;overflow:hidden}
+.brand{padding:16px;border-bottom:1px solid var(--br)}
+.brand-logo{font-family:var(--font-display);font-size:17px;font-weight:800;background:linear-gradient(135deg,#26c6da,#a29bfe);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.brand-role{font-family:var(--font-mono);font-size:9px;color:var(--t3);margin-top:2px;text-transform:uppercase;letter-spacing:.1em}
+.brand-badge{display:inline-flex;align-items:center;gap:4px;background:var(--tebg);border:1px solid rgba(38,198,218,.25);color:var(--tel);border-radius:4px;padding:2px 7px;font-family:var(--font-mono);font-size:8px;margin-top:5px;letter-spacing:.05em}
+.nav{flex:1;overflow-y:auto;padding:8px 0}
+.nav-grp{font-family:var(--font-mono);font-size:9px;color:var(--t4);padding:10px 14px 3px;letter-spacing:.1em;text-transform:uppercase}
+.nav-item{display:flex;align-items:center;gap:9px;padding:7px 12px 7px 14px;font-size:12px;font-weight:500;color:var(--t2);border-left:2px solid transparent;transition:all .12s;cursor:pointer;user-select:none}
+.nav-item:hover{background:var(--bg3);color:var(--t)}
+.nav-item.active{background:var(--accbg);color:var(--acc2);border-left-color:var(--acc)}
+.nav-icon{width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0}
+.nav-badge{margin-left:auto;font-family:var(--font-mono);font-size:8px;padding:2px 5px;border-radius:3px;background:var(--bg4);color:var(--t3)}
+.nav-badge.warn{background:var(--ambg);color:var(--amb)}
+.nav-badge.ok{background:var(--gnbg);color:var(--grn)}
+.sidebar-footer{padding:12px;border-top:1px solid var(--br)}
+.avatar-ring{width:36px;height:36px;border-radius:50%;border:2px solid var(--tel);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;background:var(--tebg);color:var(--tel);flex-shrink:0}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.topbar{height:52px;background:var(--bg2);border-bottom:1px solid var(--br);display:flex;align-items:center;padding:0 20px;gap:10px;flex-shrink:0}
+.topbar-title{font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--t);flex:1}
+.content{flex:1;overflow-y:auto;padding:20px;background:var(--bg)}
+.panel{display:none;animation:fadeIn .2s ease}
+.panel.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.card{background:var(--bg2);border:1px solid var(--br);border-radius:9px;padding:16px;margin-bottom:10px}
+.card-title{font-family:var(--font-display);font-size:13px;font-weight:700;color:var(--t);margin-bottom:3px}
+.card-sub{font-size:11px;color:var(--t3);margin-bottom:12px;line-height:1.55}
+.sl{font-family:var(--font-mono);font-size:9px;font-weight:500;color:var(--t3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px}
+.mrow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:14px}
+.met{background:var(--bg2);border:1px solid var(--br);border-radius:9px;padding:12px;transition:border-color .15s}
+.met:hover{border-color:var(--br2)}
+.met-label{font-family:var(--font-mono);font-size:9px;color:var(--t3);margin-bottom:5px;text-transform:uppercase;letter-spacing:.06em}
+.met-val{font-family:var(--font-mono);font-size:22px;font-weight:500;margin-bottom:2px}
+.met-sub{font-size:10px;color:var(--t3)}
+.btn{font-family:var(--font-body);font-size:12px;font-weight:500;padding:7px 14px;border-radius:6px;border:1px solid var(--br2);background:var(--bg4);color:var(--t2);cursor:pointer;transition:all .12s;display:inline-flex;align-items:center;gap:5px}
+.btn:hover{background:var(--bg5);color:var(--t)}
+.btn-primary{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:600}
+.btn-primary:hover{background:#7c6cf0;color:#fff}
+.btn-success{background:var(--gnbg);border-color:rgba(0,230,118,.3);color:var(--grn)}
+.btn-warn{background:var(--ambg);border-color:rgba(255,202,40,.3);color:var(--amb)}
+.btn-tel{background:var(--tebg);border-color:rgba(38,198,218,.3);color:var(--tel)}
+.btn-sm{font-size:11px;padding:4px 10px}
+.btn-a{background:var(--accbg);border-color:rgba(108,92,231,.3);color:var(--acc2);font-weight:600}
+.btn-danger{background:var(--rebg);border-color:rgba(239,83,80,.3);color:var(--red)}
+input[type="text"],input[type="email"],input[type="number"],input[type="datetime-local"],input[type="search"],select,textarea{width:100%;background:var(--bg3);border:1px solid var(--br);border-radius:5px;color:var(--t);font-size:12px;padding:7px 10px;outline:none;transition:border-color .12s;appearance:none;font-family:var(--font-body)}
+input:focus,select:focus,textarea:focus{border-color:var(--acc)}
+textarea{resize:vertical;min-height:72px;line-height:1.6}
+.input-label{font-size:9px;font-weight:500;color:var(--t3);margin-bottom:3px;font-family:var(--font-mono);letter-spacing:.06em;text-transform:uppercase}
+.input-group{margin-bottom:8px}
+.data-table{width:100%;border-collapse:collapse;font-size:11px}
+.data-table th{background:var(--bg4);color:var(--t2);padding:8px 10px;text-align:left;font-weight:600;font-size:10px;letter-spacing:.05em;text-transform:uppercase}
+.data-table td{padding:8px 10px;border-bottom:1px solid var(--br);color:var(--t2)}
+.data-table tr:last-child td{border-bottom:none}
+.data-table tr:hover td{background:var(--bg3)}
+.tag{font-family:var(--font-mono);font-size:10px;font-weight:500;padding:2px 7px;border-radius:4px;display:inline-block;margin:1px}
+.tag-grn{background:var(--gnbg);color:var(--grn)}
+.tag-amb{background:var(--ambg);color:var(--amb)}
+.tag-cor{background:var(--cobg);color:var(--cor)}
+.tag-acc{background:var(--accbg);color:var(--acc2)}
+.tag-red{background:var(--rebg);color:var(--red)}
+.tag-tel{background:var(--tebg);color:var(--tel)}
+.tag-pur{background:var(--pubg);color:var(--pur)}
+.tag-gld{background:var(--gobg);color:var(--gld)}
+.prog-bar{height:5px;background:var(--bg5);border-radius:3px;overflow:hidden}
+.prog-fill{height:100%;border-radius:3px;transition:width .5s ease}
+.prog-bar-thick{height:8px;background:var(--bg5);border-radius:4px;overflow:hidden}
+.tab-row{display:flex;border:1px solid var(--br);border-radius:6px;overflow:hidden;margin-bottom:12px;background:var(--bg2)}
+.tab-btn{flex:1;font-size:11px;font-weight:500;padding:7px 4px;cursor:pointer;background:none;border:none;color:var(--t3);transition:all .12s;text-align:center;font-family:var(--font-body)}
+.tab-btn:hover{background:var(--bg3);color:var(--t2)}
+.tab-btn.active{background:var(--accbg);color:var(--acc2)}
+.grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.flex-row{display:flex;align-items:center;gap:8px}
+.flex-between{display:flex;align-items:center;justify-content:space-between}
+.founder-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg3);border:1px solid var(--br);border-radius:7px;cursor:pointer;transition:all .12s;margin-bottom:5px}
+.founder-row:hover{border-color:var(--br2);background:var(--bg4)}
+.f-avatar{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;background:var(--accbg);color:var(--acc2)}
+.f-name{font-size:12px;font-weight:600;color:var(--t)}
+.f-meta{font-size:10px;color:var(--t3)}
+.msg-item{display:flex;gap:10px;padding:10px 12px;background:var(--bg3);border-radius:7px;border:1px solid var(--br);cursor:pointer;transition:all .12s;margin-bottom:4px}
+.msg-item:hover{border-color:var(--br2);background:var(--bg4)}
+.msg-item.unread{border-left:3px solid var(--tel)}
+.msg-avatar{width:34px;height:34px;border-radius:50%;background:var(--tebg);color:var(--tel);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0}
+.msg-preview{flex:1;min-width:0}
+.msg-name{font-size:12px;font-weight:600;color:var(--t);margin-bottom:2px}
+.msg-text{font-size:11px;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.msg-meta{font-family:var(--font-mono);font-size:9px;color:var(--t4);text-align:right;white-space:nowrap;flex-shrink:0}
+.session-card{background:var(--bg3);border:1px solid var(--br);border-radius:8px;padding:12px;margin-bottom:6px;transition:all .12s}
+.session-card:hover{border-color:var(--tel)}
+.session-time{font-family:var(--font-mono);font-size:11px;font-weight:600;color:var(--tel);margin-bottom:3px}
+.resource-card{background:var(--bg3);border:1px solid var(--br);border-radius:8px;padding:12px;display:flex;align-items:flex-start;gap:10px;margin-bottom:6px;cursor:pointer;transition:all .12s}
+.resource-card:hover{border-color:var(--acc);background:var(--bg4)}
+.resource-icon{width:36px;height:36px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;background:var(--bg4)}
+.check-item{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--br);font-size:11px}
+.check-item:last-child{border-bottom:none}
+.check-box{width:16px;height:16px;border-radius:4px;border:2px solid var(--br2);display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;transition:all .12s}
+.check-box.done{background:var(--gnbg);border-color:var(--grn);color:var(--grn)}
+.theme-toggle{display:flex;align-items:center;gap:5px;background:var(--bg3);border:1px solid var(--br);border-radius:20px;padding:4px 10px;cursor:pointer;font-family:var(--font-mono);font-size:10px;color:var(--t2);transition:all .2s;user-select:none}
+.toggle-track{width:28px;height:15px;background:var(--br2);border-radius:8px;position:relative;transition:background .2s;flex-shrink:0}
+.toggle-thumb{width:11px;height:11px;background:var(--t2);border-radius:50%;position:absolute;top:2px;left:2px;transition:all .2s}
+html[data-theme="light"] .toggle-track{background:var(--acc)}
+html[data-theme="light"] .toggle-thumb{left:15px;background:#fff}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;z-index:9999;backdrop-filter:blur(4px)}
+.modal{background:var(--bg2);border:1px solid var(--br2);border-radius:12px;padding:24px;width:540px;max-width:95vw;max-height:90vh;overflow-y:auto}
+.modal-title{font-family:var(--font-display);font-size:15px;font-weight:700;color:var(--t);margin-bottom:14px}
+.toast{position:fixed;bottom:20px;right:20px;padding:10px 16px;border-radius:8px;font-size:12px;font-weight:600;z-index:99999;transition:opacity .3s;pointer-events:none}
+.alert{border-radius:7px;padding:10px 14px;font-size:11px;margin-bottom:8px;display:flex;align-items:flex-start;gap:8px}
+.alert-warn{background:var(--ambg);border:1px solid rgba(255,202,40,.25);color:var(--amb)}
+.alert-info{background:var(--blbg);border:1px solid rgba(41,121,255,.25);color:var(--blu)}
+.alert-ok{background:var(--gnbg);border:1px solid rgba(0,230,118,.25);color:var(--grn)}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.dot-grn{background:var(--grn);box-shadow:0 0 6px rgba(0,230,118,.5)}
+.dot-tel{background:var(--tel);box-shadow:0 0 6px rgba(38,198,218,.5)}
+.dot-amb{background:var(--amb)}
+.thinking{color:var(--t3);font-style:italic;font-size:11px}
+.thinking::after{content:'';display:inline-block;width:4px;height:4px;border-radius:50%;background:var(--tel);animation:pulse 1.2s ease infinite;margin-left:6px;vertical-align:middle}
+@keyframes pulse{0%,100%{opacity:.3}50%{opacity:1}}
+@media(max-width:768px){.sidebar{width:52px;min-width:52px}.sidebar .brand-role,.sidebar .nav-grp,.brand-badge,.nav-item span:not(.nav-icon),.nav-badge,.sidebar-footer .footer-info{display:none}.nav-item{justify-content:center;padding:8px}.mrow{grid-template-columns:1fr 1fr}}
+
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+
+(function(){
+'use strict';
+
+const THEME_KEY = 'los_trainer_theme';
+const themeSystem = {
+  current: localStorage.getItem(THEME_KEY) || 'dark',
+  init(){ this.apply(this.current, false); },
+  apply(t, save=true){
+    this.current = t;
+    document.documentElement.setAttribute('data-theme', t);
+    if (save) localStorage.setItem(THEME_KEY, t);
+    const icon = document.getElementById('theme-icon');
+    const lbl  = document.getElementById('theme-label');
+    if (icon) icon.textContent = t==='light'?'☀️':'🌙';
+    if (lbl)  lbl.textContent  = t==='light'?'Light':'Dark';
+  },
+  toggle(){ this.apply(this.current==='dark'?'light':'dark'); }
+};
+themeSystem.init();
+window.toggleTrainerTheme = () => themeSystem.toggle();
+
+const state = {
+  panel: 'dashboard',
+  focusFounder: 'f1',
+  sessTab: 'upcoming',
+  inboxTab: 'all',
+  planFounder: 'f1',
+  notes: JSON.parse(localStorage.getItem('trainer_notes')||'{}'),
+  checks: JSON.parse(localStorage.getItem('trainer_checks')||'{}'),
+  saveNotes(){ localStorage.setItem('trainer_notes', JSON.stringify(this.notes)); },
+  saveChecks(){ localStorage.setItem('trainer_checks', JSON.stringify(this.checks)); },
+};
+
+const ME = {
+  id:'t1', name:'Dr. Meera Iyer', email:'meera@launchos.in',
+  role:'Mentor', specialty:'Sales & SPARC™', avatar:'MI',
+  cohorts:['c1'], rating:4.9, sessions:14, city:'Bengaluru'
+};
+
+const MY_FOUNDERS = [
+  { id:'f1', name:'Arjun Sharma', email:'arjun@startup.in', business:'EdTech platform for Tier-2 cities',
+    stage:6, bmcPct:85, assessScore:72, surveyResp:45, lastActive:'2h ago', status:'active', city:'Hyderabad', avatar:'AS', cohort:'c1',
+    strengths:'Strong market insight, high energy presenter',
+    blockers:'Probe stage weak — not going deep enough on past failures',
+    nextAction:'Extra SPARC™ roleplay session this week',
+    sessions:[
+      {date:'2026-03-10',type:'SPARC™ Review',duration:45,notes:'Covered Surface and Probe. Roleplay feedback given.',rating:3},
+      {date:'2026-03-17',type:'Script Refinement',duration:60,notes:'Amplify stage improved. Cost of inaction framing still vague.',rating:4},
+      {date:'2026-03-25',type:'Full Run-Through',duration:60,notes:'Upcoming',rating:null},
+    ]
+  },
+  { id:'f6', name:'Divya Singh', email:'divya@health.co', business:'Mental health app for corporates',
+    stage:5, bmcPct:75, assessScore:79, surveyResp:55, lastActive:'12h ago', status:'active', city:'Delhi', avatar:'DS', cohort:'c1',
+    strengths:'Empathetic storytelling, strong VSL hook',
+    blockers:'Pricing confidence low — undercharging risk',
+    nextAction:'Run 3-tier pricing workshop',
+    sessions:[
+      {date:'2026-03-12',type:'Offer Design',duration:45,notes:'Core offer locked. Reviewed pricing tiers.',rating:4},
+      {date:'2026-03-19',type:'VSL Script',duration:60,notes:'Script drafted. Hook is excellent. Close needs work.',rating:4},
+    ]
+  },
+];
+
+const INBOX_MSGS = [
+  {id:'im1',from:'Arjun Sharma',fromId:'f1',avatar:'AS',subject:'SPARC™ script review — Probe stage',body:'Hi Dr. Meera, I\'ve rewritten the Probe section. I tried going deeper on the past failures angle you suggested. Can you review before our call on March 25?',time:'2h ago',unread:true,type:'founder'},
+  {id:'im2',from:'Divya Singh',fromId:'f6',avatar:'DS',subject:'Pricing call prep',body:'Hi, wanted to confirm — are we doing the pricing workshop this week or next? Also I had an insight about positioning the app for CXOs vs HRs.',time:'1d ago',unread:true,type:'founder'},
+  {id:'am1',from:'Sushma (Admin)',avatar:'SA',subject:'Cohort 1 Week 4 prep',body:'Please prepare the Week 4 session plan for Cohort 1. Focus on closing scripts and objection handling.',time:'5h ago',unread:true,type:'admin'},
+  {id:'am2',from:'Sushma (Admin)',avatar:'SA',subject:'Arjun — flag for extra support',body:'I have reviewed Arjun\'s BSI profile and his cortisol load is very high. Please be extra gentle in your next session and focus on building confidence first.',time:'2d ago',unread:false,type:'admin'},
+  {id:'tm1',from:'Rajiv Nair (Trainer)',avatar:'RN',subject:'Sharing BMC notes for cross-reference',body:'Hi Meera, I\'ve completed the BMC session with Arjun and Divya. Key insight: Arjun\'s problem statement is sharp but his USP needs polish.',time:'3d ago',unread:false,type:'trainer'},
+];
+
+const UPCOMING_SESSIONS = [
+  {id:'s1',founder:'Arjun Sharma',founderId:'f1',type:'Full SPARC™ Run-Through',date:'Tue Mar 25',time:'10:00 AM',duration:60,prep:'Review his rewritten Probe section sent this morning',status:'confirmed'},
+  {id:'s2',founder:'Divya Singh',founderId:'f6',type:'Pricing Strategy Workshop',date:'Wed Mar 26',time:'3:00 PM',duration:45,prep:'Prepare 3-tier pricing framework examples for health apps',status:'confirmed'},
+  {id:'s3',founder:'Arjun Sharma',founderId:'f1',type:'Objection Handling Roleplay',date:'Fri Mar 28',time:'11:00 AM',duration:60,prep:'Run full SPARC™ script with Meera as prospect',status:'pending'},
+];
+
+const RESOURCES = [
+  {id:'r1',title:'SPARC™ Master Framework',type:'pdf',icon:'📄',tag:'tag-acc',desc:'Full SPARC™ stages with coaching notes and roleplay prompts'},
+  {id:'r2',title:'Objection Bank — 40 objections',type:'doc',icon:'📋',tag:'tag-grn',desc:'Categorised objection library: price, time, trust, authority'},
+  {id:'r3',title:'Week 1–4 Session Plans',type:'doc',icon:'📅',tag:'tag-tel',desc:'Cohort 1 session-by-session run sheets with timings and exercises'},
+  {id:'r4',title:'VSL Critique Rubric',type:'pdf',icon:'🎬',tag:'tag-pur',desc:'12-point rubric for evaluating and coaching founder VSL scripts'},
+  {id:'r5',title:'Pricing Workshop Deck',type:'pptx',icon:'💰',tag:'tag-amb',desc:'3-tier pricing canvas with live exercises — editable'},
+  {id:'r6',title:'BSI Reference Guide',type:'pdf',icon:'🧠',tag:'tag-cor',desc:'Body Stress Index interpretation guide for coaching conversations'},
+];
+
+const STAGE_NAMES = ['Assessments','BMC','Offer','Discovery','VSL','SPARC™','Outbound','MVP','Scale'];
+
+const NAV = [
+  {group:'My Portal'},
+  {id:'dashboard',   label:'Dashboard',        icon:'⌂',  bg:'var(--accbg)', col:'var(--acc2)'},
+  {id:'my-founders', label:'My Founders',      icon:'👥', bg:'var(--pkbg)',  col:'var(--pnk)', badge:()=>MY_FOUNDERS.length},
+  {id:'sessions',    label:'Sessions',         icon:'🎯', bg:'var(--tebg)',  col:'var(--tel)', badge:()=>UPCOMING_SESSIONS.filter(s=>s.status==='confirmed').length},
+  {id:'progress',    label:'Progress Notes',   icon:'📈', bg:'var(--gnbg)',  col:'var(--grn)'},
+  {group:'Communication'},
+  {id:'inbox',       label:'Inbox',            icon:'✉',  bg:'var(--blbg)',  col:'var(--blu)', badge:()=>INBOX_MSGS.filter(m=>m.unread).length, badgeCls:'warn'},
+  {id:'feedback',    label:'Session Feedback', icon:'⭐', bg:'var(--gobg)',  col:'var(--gld)'},
+  {group:'Cohort'},
+  {id:'cohort',      label:'Cohort Overview',  icon:'◈',  bg:'var(--gobg)',  col:'var(--gld)'},
+  {id:'resources',   label:'Resources',        icon:'📚', bg:'var(--pubg)',  col:'var(--pur)', badge:()=>RESOURCES.length},
+  {id:'profile',     label:'My Profile',       icon:'🎓', bg:'var(--tebg)',  col:'var(--tel)'},
+];
+
+function renderSidebar(){
+  return `<div class="sidebar">
+    <div class="brand">
+      <div class="brand-logo">LaunchOS™</div>
+      <div class="brand-role">🎓 Trainer & Mentor Portal</div>
+      <div class="brand-badge"><span class="dot dot-grn"></span>&nbsp;${ME.role} · ${ME.specialty}</div>
+    </div>
+    <nav class="nav">
+      ${NAV.map(item=>{
+        if(item.group) return `<div class="nav-grp">${item.group}</div>`;
+        const cnt = item.badge?item.badge():0;
+        const badge = cnt>0?`<span class="nav-badge ${item.badgeCls||''}">${cnt}</span>`:'';
+        return `<div class="nav-item ${state.panel===item.id?'active':''}" onclick="go('${item.id}')">
+          <div class="nav-icon" style="background:${item.bg};color:${item.col}">${item.icon}</div>
+          <span>${item.label}</span>${badge}
+        </div>`;
+      }).join('')}
+    </nav>
+    <div class="sidebar-footer">
+      <div style="display:flex;align-items:center;gap:9px">
+        <div class="avatar-ring">${ME.avatar}</div>
+        <div class="footer-info">
+          <div style="font-size:12px;font-weight:700;color:var(--t)">${ME.name}</div>
+          <div style="font-size:9px;color:var(--t3);font-family:var(--font-mono)">${ME.role} · ⭐ ${ME.rating}</div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderTopbar(){
+  return `<div class="topbar">
+    <div class="topbar-title" id="topbar-title">Dashboard</div>
+    <div class="theme-toggle" onclick="toggleTrainerTheme()">
+      <span id="theme-icon">🌙</span>
+      <div class="toggle-track"><div class="toggle-thumb"></div></div>
+      <span id="theme-label">Dark</span>
+    </div>
+    <button class="btn btn-tel btn-sm" onclick="go('sessions')">📅 Sessions</button>
+    <button class="btn btn-primary btn-sm" onclick="openCompose()">✉ Message</button>
+  </div>`;
+}
+
+function renderDashboard(){
+  const unread = INBOX_MSGS.filter(m=>m.unread).length;
+  const nextS = UPCOMING_SESSIONS[0];
+  const avgScore = Math.round(MY_FOUNDERS.reduce((a,f)=>a+f.assessScore,0)/MY_FOUNDERS.length);
+  const checks = [
+    {id:'pc1',text:"Read Arjun's rewritten Probe section (received this morning)"},
+    {id:'pc2',text:'Review Week 3 session notes and progression markers'},
+    {id:'pc3',text:'Prepare 3 past-failure prompts for roleplay'},
+    {id:'pc4',text:'Load SPARC™ objection bank for reference'},
+    {id:'pc5',text:'Send 60-min video call link to Arjun'},
+  ];
+  return `
+  <div class="mrow">
+    <div class="met"><div class="met-label">My Founders</div><div class="met-val" style="color:var(--pnk)">${MY_FOUNDERS.length}</div><div class="met-sub">assigned to me</div></div>
+    <div class="met"><div class="met-label">Sessions This Month</div><div class="met-val" style="color:var(--tel)">${ME.sessions}</div><div class="met-sub">↑ 3 vs last month</div></div>
+    <div class="met"><div class="met-label">Avg Readiness</div><div class="met-val" style="color:var(--grn)">${avgScore}%</div><div class="met-sub">across my founders</div></div>
+    <div class="met"><div class="met-label">Unread Messages</div><div class="met-val" style="color:var(--amb)">${unread}</div><div class="met-sub">need response</div></div>
+  </div>
+  ${unread>0?`<div class="alert alert-warn" style="margin-bottom:10px">⚡ You have ${unread} unread messages — ${INBOX_MSGS.filter(m=>m.unread&&m.type==='founder').length} from founders, ${INBOX_MSGS.filter(m=>m.unread&&m.type==='admin').length} from admin. <button class="btn btn-sm" style="margin-left:8px" onclick="go('inbox')">View Inbox →</button></div>`:''}
+  <div class="grid-2" style="margin-bottom:10px">
+    <div class="card">
+      <div class="card-title">🎯 Next Session</div>
+      ${nextS?`<div class="session-card" style="border-color:var(--tel)">
+        <div class="session-time">${nextS.date} · ${nextS.time}</div>
+        <div style="font-size:13px;font-weight:700;color:var(--t);margin-bottom:2px">${nextS.founder}</div>
+        <div style="font-size:11px;color:var(--acc2);margin-bottom:8px">${nextS.type} · ${nextS.duration}min</div>
+        <div style="font-size:10px;color:var(--t3);background:var(--bg4);border-radius:5px;padding:6px 8px;margin-bottom:8px">📌 Prep: ${nextS.prep}</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="btn btn-tel btn-sm" onclick="go('sessions')">View all sessions</button>
+          <button class="btn btn-sm" onclick="openSessionNotes('${nextS.founderId}')">Add prep notes</button>
+        </div>
+      </div>`:'<div style="color:var(--t3);font-size:12px;padding:10px">No upcoming sessions</div>'}
+    </div>
+    <div class="card">
+      <div class="flex-between" style="margin-bottom:10px">
+        <div class="card-title">👥 My Founders</div>
+        <button class="btn btn-sm" onclick="go('my-founders')">View all →</button>
+      </div>
+      ${MY_FOUNDERS.map(f=>`
+        <div style="display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid var(--br);cursor:pointer" onclick="openFounderDetail('${f.id}')">
+          <div class="f-avatar">${f.avatar}</div>
+          <div style="flex:1">
+            <div class="f-name">${f.name}</div>
+            <div class="f-meta">${f.business.slice(0,34)}… · Stage ${f.stage}/9</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-family:var(--font-mono);font-size:12px;font-weight:700;color:var(--grn)">${f.assessScore}%</div>
+            <div style="font-size:9px;color:var(--t4)">readiness</div>
+          </div>
+        </div>`).join('')}
+    </div>
+  </div>
+  <div class="card">
+    <div class="flex-between" style="margin-bottom:10px">
+      <div class="card-title">✉ Recent Messages</div>
+      <button class="btn btn-sm" onclick="go('inbox')">View all →</button>
+    </div>
+    ${INBOX_MSGS.slice(0,4).map(m=>`
+      <div class="msg-item ${m.unread?'unread':''}" onclick="openMessage('${m.id}')">
+        <div class="msg-avatar" style="${m.type==='admin'?'background:var(--cobg);color:var(--cor)':m.type==='trainer'?'background:var(--pubg);color:var(--pur)':''}">${m.avatar}</div>
+        <div class="msg-preview">
+          <div class="msg-name">${m.from} <span class="tag ${m.type==='admin'?'tag-cor':m.type==='trainer'?'tag-pur':'tag-tel'}" style="font-size:8px;padding:1px 5px">${m.type}</span></div>
+          <div class="msg-text">${m.subject}</div>
+        </div>
+        <div class="msg-meta">${m.time}${m.unread?'<br><span style="color:var(--tel);font-size:8px">NEW</span>':''}</div>
+      </div>`).join('')}
+  </div>
+  <div class="card">
+    <div class="card-title">✅ Pre-Session Prep Checklist</div>
+    <div class="card-sub">Next session: Arjun Sharma — SPARC™ Run-Through · Tue Mar 25 · 10:00 AM</div>
+    ${checks.map(c=>{
+      const done = !!state.checks[c.id];
+      return `<div class="check-item">
+        <div class="check-box ${done?'done':''}" onclick="toggleCheck('${c.id}')">${done?'✓':''}</div>
+        <div style="color:${done?'var(--t3)':'var(--t2)'}${done?';text-decoration:line-through':''}">${c.text}</div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+function renderMyFounders(){
+  return `<div class="sl">${MY_FOUNDERS.length} founders assigned · Cohort 1</div>
+  ${MY_FOUNDERS.map(f=>`
+    <div class="card" style="cursor:pointer" onclick="openFounderDetail('${f.id}')">
+      <div class="flex-between" style="margin-bottom:12px">
+        <div class="flex-row">
+          <div class="f-avatar" style="width:42px;height:42px;font-size:14px">${f.avatar}</div>
+          <div>
+            <div style="font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--t)">${f.name}</div>
+            <div style="font-size:11px;color:var(--t3)">${f.city} · ${f.business}</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:4px;align-items:center">
+          <span class="tag ${f.status==='active'?'tag-grn':'tag-red'}">${f.status}</span>
+          <span class="tag tag-tel">Cohort 1</span>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px">
+        ${[['Stage',f.stage+'/9','var(--acc2)'],['BMC',f.bmcPct+'%','var(--grn)'],['Readiness',f.assessScore+'%','var(--tel)'],['Survey',f.surveyResp,'var(--amb)']].map(([l,v,c])=>`
+          <div style="text-align:center;background:var(--bg3);border-radius:7px;padding:8px">
+            <div style="font-family:var(--font-mono);font-size:18px;font-weight:700;color:${c}">${v}</div>
+            <div style="font-size:9px;color:var(--t3);margin-top:2px">${l}</div>
+          </div>`).join('')}
+      </div>
+      <div class="prog-bar" style="margin-bottom:10px"><div class="prog-fill" style="width:${(f.stage/9)*100}%;background:linear-gradient(90deg,var(--tel),var(--acc))"></div></div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px">
+        ${[['STRENGTHS',f.strengths,'var(--grn)','var(--gnbg)'],['BLOCKERS',f.blockers,'var(--amb)','var(--ambg)'],['NEXT ACTION',f.nextAction,'var(--acc2)','var(--accbg)']].map(([l,v,c,bg])=>`
+          <div style="background:${bg};border-radius:6px;padding:8px;font-size:10px">
+            <div style="color:var(--t3);margin-bottom:3px;font-family:var(--font-mono);font-size:8px;text-transform:uppercase;letter-spacing:.05em">${l}</div>
+            <div style="color:${c}">${v}</div>
+          </div>`).join('')}
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn btn-sm btn-a" onclick="event.stopPropagation();state.focusFounder='${f.id}';go('progress')">📈 Progress</button>
+        <button class="btn btn-sm btn-tel" onclick="event.stopPropagation();openSessionNotes('${f.id}')">📝 Notes</button>
+        <button class="btn btn-sm" onclick="event.stopPropagation();openComposeTo('${f.id}','${f.name}')">✉ Message</button>
+        <button class="btn btn-sm btn-success" onclick="event.stopPropagation();scheduleSession('${f.id}','${f.name}')">📅 Book</button>
+      </div>
+    </div>`).join('')}`;
+}
+
+function renderSessions(){
+  const tab = state.sessTab;
+  return `
+  <div class="tab-row">
+    <button class="tab-btn ${tab==='upcoming'?'active':''}" onclick="setSessTab('upcoming')">Upcoming (${UPCOMING_SESSIONS.length})</button>
+    <button class="tab-btn ${tab==='history'?'active':''}" onclick="setSessTab('history')">History</button>
+    <button class="tab-btn ${tab==='plan'?'active':''}" onclick="setSessTab('plan')">Plan Builder</button>
+  </div>
+  <div id="sess-content">
+    ${tab==='upcoming'?renderUpcomingSessions():tab==='history'?renderSessionHistory():renderSessionPlanBuilder()}
+  </div>`;
+}
+
+function renderUpcomingSessions(){
+  return `<div class="sl">Confirmed & pending sessions</div>
+  ${UPCOMING_SESSIONS.map(s=>`
+    <div class="session-card">
+      <div class="flex-between" style="margin-bottom:8px">
+        <div class="session-time">${s.date} · ${s.time}</div>
+        <span class="tag ${s.status==='confirmed'?'tag-grn':'tag-amb'}">${s.status}</span>
+      </div>
+      <div style="font-size:13px;font-weight:700;color:var(--t);margin-bottom:2px">${s.founder}</div>
+      <div style="font-size:11px;color:var(--acc2);margin-bottom:8px">${s.type} · ${s.duration}min</div>
+      <div style="background:var(--bg4);border-radius:5px;padding:8px;font-size:11px;color:var(--t3);margin-bottom:10px">
+        📌 <strong style="color:var(--t2)">Prep:</strong> ${s.prep}
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn btn-sm btn-tel" onclick="openSessionNotes('${s.founderId}')">📝 Prep Notes</button>
+        <button class="btn btn-sm btn-success" onclick="openSessionForm('${s.id}')">▶ Start Session</button>
+        <button class="btn btn-sm" onclick="openComposeTo('${s.founderId}','${s.founder}')">✉ Message</button>
+        ${s.status==='pending'?`<button class="btn btn-sm btn-warn" onclick="confirmSession('${s.id}')">✓ Confirm</button>`:''}
+      </div>
+    </div>`).join('')}
+  <button class="btn btn-primary" style="margin-top:8px" onclick="scheduleSession(null,null)">+ Schedule New Session</button>`;
+}
+
+function renderSessionHistory(){
+  const all = MY_FOUNDERS.flatMap(f=>f.sessions.filter(s=>s.rating).map(s=>({...s,founder:f.name,founderId:f.id})));
+  return `<table class="data-table">
+    <thead><tr><th>Date</th><th>Founder</th><th>Session Type</th><th>Duration</th><th>Rating</th><th>Notes</th></tr></thead>
+    <tbody>
+      ${all.sort((a,b)=>b.date.localeCompare(a.date)).map(s=>`
+        <tr>
+          <td style="font-family:var(--font-mono);font-size:10px;color:var(--t3)">${s.date}</td>
+          <td style="font-weight:600;color:var(--t)">${s.founder}</td>
+          <td><span class="tag tag-acc">${s.type}</span></td>
+          <td style="font-family:var(--font-mono)">${s.duration}min</td>
+          <td>${s.rating?'⭐'.repeat(s.rating):'—'}</td>
+          <td style="color:var(--t3);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.notes}</td>
+        </tr>`).join('')}
+    </tbody>
+  </table>`;
+}
+
+function renderSessionPlanBuilder(){
+  const fId = state.planFounder;
+  const f = MY_FOUNDERS.find(x=>x.id===fId)||MY_FOUNDERS[0];
+  return `<div class="grid-2">
+    <div>
+      <div class="input-group"><div class="input-label">Founder</div>
+        <select onchange="state.planFounder=this.value;refreshPanel()">
+          ${MY_FOUNDERS.map(x=>`<option value="${x.id}" ${fId===x.id?'selected':''}>${x.name}</option>`).join('')}
+        </select>
+      </div>
+      <div class="input-group"><div class="input-label">Session Type</div>
+        <select><option>SPARC™ Roleplay</option><option>Script Review</option><option>Pricing Workshop</option><option>Progress Check-in</option><option>VSL Critique</option><option>Discovery Practice</option></select>
+      </div>
+      <div class="grid-2">
+        <div class="input-group"><div class="input-label">Date & Time</div><input type="datetime-local" value="2026-03-28T11:00"></div>
+        <div class="input-group"><div class="input-label">Duration</div><select><option>30</option><option selected>45</option><option>60</option><option>90</option></select></div>
+      </div>
+      <div class="input-group"><div class="input-label">Session Objectives</div><textarea placeholder="What must this founder leave the session having achieved?"></textarea></div>
+      <div class="input-group"><div class="input-label">Founder Prep Required</div><textarea placeholder="What must the founder prepare before the session?"></textarea></div>
+      <button class="btn btn-primary" onclick="showToast('Session plan saved and invite sent ✓')">Save & Send Invite</button>
+    </div>
+    <div>
+      <div class="card" style="margin-bottom:0">
+        <div class="card-title">${f.name} — Current Status</div>
+        <div class="card-sub">${f.business}</div>
+        <div class="grid-2" style="margin-bottom:10px">
+          <div style="background:var(--bg3);border-radius:6px;padding:8px;text-align:center">
+            <div style="font-family:var(--font-mono);font-size:20px;font-weight:700;color:var(--acc2)">${f.stage}/9</div>
+            <div style="font-size:9px;color:var(--t3)">Stage</div>
+          </div>
+          <div style="background:var(--bg3);border-radius:6px;padding:8px;text-align:center">
+            <div style="font-family:var(--font-mono);font-size:20px;font-weight:700;color:var(--grn)">${f.assessScore}%</div>
+            <div style="font-size:9px;color:var(--t3)">Readiness</div>
+          </div>
+        </div>
+        <div style="font-size:10px;color:var(--t3);margin-bottom:4px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.05em">Key Blocker</div>
+        <div style="font-size:11px;color:var(--amb);background:var(--ambg);border-radius:5px;padding:7px 9px;margin-bottom:8px">${f.blockers}</div>
+        <div style="font-size:10px;color:var(--t3);margin-bottom:4px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.05em">Recommended Focus</div>
+        <div style="font-size:11px;color:var(--grn);background:var(--gnbg);border-radius:5px;padding:7px 9px">${f.nextAction}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderProgress(){
+  const fId = state.focusFounder||'f1';
+  const f = MY_FOUNDERS.find(x=>x.id===fId)||MY_FOUNDERS[0];
+  const savedNote = state.notes[fId]||'';
+  return `
+  <div class="flex-row" style="margin-bottom:14px">
+    <select onchange="state.focusFounder=this.value;refreshPanel()" style="flex:1;max-width:280px">
+      ${MY_FOUNDERS.map(x=>`<option value="${x.id}" ${fId===x.id?'selected':''}>${x.name}</option>`).join('')}
+    </select>
+    <button class="btn btn-sm btn-tel" onclick="scheduleSession('${f.id}','${f.name}')">📅 Book session</button>
+    <button class="btn btn-sm" onclick="openComposeTo('${f.id}','${f.name}')">✉ Message</button>
+  </div>
+  <div class="mrow">
+    <div class="met"><div class="met-label">Programme Stage</div><div class="met-val" style="color:var(--acc2)">${f.stage}/9</div><div class="met-sub">${STAGE_NAMES[f.stage-1]||'Stage '+f.stage}</div></div>
+    <div class="met"><div class="met-label">BMC Completion</div><div class="met-val" style="color:var(--grn)">${f.bmcPct}%</div><div class="met-sub">${Math.round(f.bmcPct/100*16)}/16 steps</div></div>
+    <div class="met"><div class="met-label">Readiness Score</div><div class="met-val" style="color:var(--tel)">${f.assessScore}%</div><div class="met-sub">assessment avg</div></div>
+    <div class="met"><div class="met-label">Survey Responses</div><div class="met-val" style="color:${f.surveyResp>=30?'var(--grn)':'var(--amb)'}">${f.surveyResp}</div><div class="met-sub">${f.surveyResp>=30?'Analysis unlocked':'Need 30 min'}</div></div>
+  </div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">Programme Journey</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:6px">
+        ${STAGE_NAMES.map((s,i)=>{
+          const done=i+1<f.stage, cur=i+1===f.stage;
+          return `<div style="padding:8px;border-radius:6px;background:${cur?'var(--accbg)':done?'var(--gnbg)':'var(--bg3)'};border:1px solid ${cur?'var(--acc)':done?'var(--grn)':'var(--br)'};text-align:center">
+            <div style="font-size:10px;font-weight:700;color:${cur?'var(--acc2)':done?'var(--grn)':'var(--t3)'}">${s}</div>
+            <div style="font-family:var(--font-mono);font-size:8px;color:${cur?'var(--acc2)':done?'var(--grn)':'var(--t4)'}">${cur?'CURRENT':done?'✓ DONE':'pending'}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Coaching Focus</div>
+      ${[['Strengths',f.strengths,'var(--grn)','var(--gnbg)'],['Blockers',f.blockers,'var(--amb)','var(--ambg)'],['Next Action',f.nextAction,'var(--acc2)','var(--accbg)']].map(([l,v,c,bg])=>`
+        <div style="margin-bottom:9px">
+          <div style="font-family:var(--font-mono);font-size:9px;color:var(--t3);text-transform:uppercase;margin-bottom:4px;letter-spacing:.06em">${l}</div>
+          <div style="font-size:11px;color:${c};background:${bg};border-radius:5px;padding:7px 9px">${v}</div>
+        </div>`).join('')}
+    </div>
+  </div>
+  <div class="card">
+    <div class="flex-between" style="margin-bottom:10px">
+      <div class="card-title">Session History</div>
+      <button class="btn btn-sm btn-tel" onclick="scheduleSession('${f.id}','${f.name}')">+ New Session</button>
+    </div>
+    ${f.sessions.map(s=>`
+      <div style="display:flex;gap:10px;padding:9px 0;border-bottom:1px solid var(--br);align-items:flex-start">
+        <div style="font-family:var(--font-mono);font-size:9px;color:var(--t4);width:75px;flex-shrink:0;padding-top:2px">${s.date}</div>
+        <div style="flex:1">
+          <div style="font-size:11px;font-weight:700;color:var(--t);margin-bottom:2px">${s.type}</div>
+          <div style="font-size:10px;color:var(--t3)">${s.notes}</div>
+        </div>
+        <div>${s.rating?`<span style="font-size:11px">${'⭐'.repeat(s.rating)}</span>`:'<span class="tag tag-amb">Upcoming</span>'}</div>
+      </div>`).join('')}
+  </div>
+  <div class="card">
+    <div class="flex-between" style="margin-bottom:8px">
+      <div class="card-title">📝 Private Mentor Notes</div>
+      <span style="font-size:10px;color:var(--t3)">Visible only to you and admin</span>
+    </div>
+    <textarea id="mentor-note-${fId}" placeholder="Write private coaching notes, observations, concerns about ${f.name}…" style="min-height:110px">${savedNote}</textarea>
+    <button class="btn btn-a btn-sm" style="margin-top:6px" onclick="saveMentorNote('${fId}')">Save Notes</button>
+  </div>`;
+}
+
+function renderInbox(){
+  const tab = state.inboxTab;
+  const filtered = tab==='all'?INBOX_MSGS:INBOX_MSGS.filter(m=>m.type===tab);
+  const counts = {all:INBOX_MSGS.length, founder:INBOX_MSGS.filter(m=>m.type==='founder').length, admin:INBOX_MSGS.filter(m=>m.type==='admin').length, trainer:INBOX_MSGS.filter(m=>m.type==='trainer').length};
+  return `
+  <div class="tab-row">
+    <button class="tab-btn ${tab==='all'?'active':''}" onclick="setInboxTab('all')">All (${counts.all})</button>
+    <button class="tab-btn ${tab==='founder'?'active':''}" onclick="setInboxTab('founder')">Founders (${counts.founder})</button>
+    <button class="tab-btn ${tab==='admin'?'active':''}" onclick="setInboxTab('admin')">Admin (${counts.admin})</button>
+    <button class="tab-btn ${tab==='trainer'?'active':''}" onclick="setInboxTab('trainer')">Trainers (${counts.trainer})</button>
+  </div>
+  ${filtered.map(m=>`
+    <div class="msg-item ${m.unread?'unread':''}" onclick="openMessage('${m.id}')">
+      <div class="msg-avatar" style="${m.type==='admin'?'background:var(--cobg);color:var(--cor)':m.type==='trainer'?'background:var(--pubg);color:var(--pur)':''}">${m.avatar}</div>
+      <div class="msg-preview">
+        <div class="msg-name">${m.from} <span class="tag ${m.type==='admin'?'tag-cor':m.type==='trainer'?'tag-pur':'tag-tel'}" style="font-size:8px;padding:1px 5px;margin-left:4px">${m.type}</span></div>
+        <div style="font-size:12px;font-weight:600;color:var(--t2);margin-bottom:2px">${m.subject}</div>
+        <div class="msg-text">${m.body.slice(0,90)}…</div>
+      </div>
+      <div class="msg-meta">${m.time}${m.unread?'<br><span style="color:var(--tel);font-size:8px">NEW</span>':''}</div>
+    </div>`).join('')}
+  <div style="margin-top:12px">
+    <button class="btn btn-primary" onclick="openCompose()">+ Compose Message</button>
+  </div>`;
+}
+
+function renderFeedback(){
+  return `
+  <div class="grid-2" style="margin-bottom:14px">
+    <div class="met"><div class="met-label">Avg Rating</div><div class="met-val" style="color:var(--gld)">4.9 ⭐</div><div class="met-sub">across all sessions</div></div>
+    <div class="met"><div class="met-label">Sessions Logged</div><div class="met-val" style="color:var(--tel)">${MY_FOUNDERS.flatMap(f=>f.sessions).filter(s=>s.rating).length}</div><div class="met-sub">with feedback</div></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Log Session Feedback</div>
+    <div class="card-sub">Record post-session outcomes and progress notes</div>
+    <div class="grid-2">
+      <div class="input-group"><div class="input-label">Founder</div>
+        <select>${MY_FOUNDERS.map(f=>`<option>${f.name}</option>`).join('')}</select>
+      </div>
+      <div class="input-group"><div class="input-label">Session Type</div>
+        <select><option>SPARC™ Roleplay</option><option>Script Review</option><option>Pricing Workshop</option><option>Progress Check-in</option></select>
+      </div>
+    </div>
+    <div class="input-group">
+      <div class="input-label">Rating</div>
+      <div style="display:flex;gap:6px;margin-top:2px" id="rating-btns">
+        ${[1,2,3,4,5].map(n=>`<button class="btn btn-sm" id="star-${n}" onclick="setRating(${n})">${'⭐'.repeat(n)}</button>`).join('')}
+      </div>
+    </div>
+    <div class="input-group"><div class="input-label">What went well?</div><textarea placeholder="What did the founder nail? What showed real breakthrough?"></textarea></div>
+    <div class="input-group"><div class="input-label">What needs work?</div><textarea placeholder="What skills/mindset gaps are still showing?"></textarea></div>
+    <div class="input-group"><div class="input-label">Action items for next session</div><textarea placeholder="What must the founder do before the next session?"></textarea></div>
+    <div class="input-group">
+      <div class="input-label">Escalate to Admin?</div>
+      <div style="display:flex;gap:8px;margin-top:4px">
+        <button class="btn btn-sm btn-warn" id="esc-yes" onclick="setEscalate(true)">⚠ Flag this founder</button>
+        <button class="btn btn-sm btn-a" id="esc-no" onclick="setEscalate(false)">✓ All good</button>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="showToast('Session feedback saved ✓')">Save Feedback</button>
+  </div>
+  <div class="card">
+    <div class="card-title">Recent Feedback</div>
+    ${MY_FOUNDERS.flatMap(f=>f.sessions.filter(s=>s.rating).map(s=>({...s,fname:f.name}))).slice(0,4).map(s=>`
+      <div style="padding:10px 0;border-bottom:1px solid var(--br)">
+        <div class="flex-between" style="margin-bottom:4px">
+          <div style="font-size:12px;font-weight:700;color:var(--t)">${s.fname} — ${s.type}</div>
+          <div>${'⭐'.repeat(s.rating)}</div>
+        </div>
+        <div style="font-size:11px;color:var(--t3)">${s.notes}</div>
+        <div style="font-family:var(--font-mono);font-size:9px;color:var(--t4);margin-top:3px">${s.date} · ${s.duration}min</div>
+      </div>`).join('')}
+  </div>`;
+}
+
+function renderCohort(){
+  return `
+  <div class="card" style="border-color:var(--tel);margin-bottom:10px">
+    <div class="flex-between" style="margin-bottom:10px">
+      <div>
+        <div style="font-family:var(--font-display);font-size:15px;font-weight:800;color:var(--t)">Cohort 1 — March 2026</div>
+        <div style="font-size:11px;color:var(--t3);margin-top:2px">2026-03-01 → 2026-08-31 · <span class="tag tag-tel">Week 3 of 18</span></div>
+      </div>
+      <span class="tag tag-grn">active</span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+      ${[['Founders','3','var(--pnk)'],['Trainers','2','var(--gld)'],['On Track','2','var(--grn)']].map(([l,v,c])=>`
+        <div style="background:var(--bg3);border-radius:7px;padding:10px;text-align:center">
+          <div style="font-family:var(--font-mono);font-size:20px;font-weight:700;color:${c}">${v}</div>
+          <div style="font-size:9px;color:var(--t3)">${l}</div>
+        </div>`).join('')}
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Cohort Founder Overview</div>
+    <table class="data-table" style="margin-top:6px">
+      <thead><tr><th>Founder</th><th>Business</th><th>Stage</th><th>BMC %</th><th>Readiness</th><th>Last Active</th><th>Status</th></tr></thead>
+      <tbody>
+        ${MY_FOUNDERS.map(f=>`
+          <tr onclick="openFounderDetail('${f.id}')" style="cursor:pointer">
+            <td><div style="display:flex;align-items:center;gap:7px"><div class="f-avatar" style="width:26px;height:26px;font-size:10px">${f.avatar}</div><strong style="color:var(--t)">${f.name}</strong></div></td>
+            <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--t3)">${f.business}</td>
+            <td><span style="font-family:var(--font-mono);font-weight:700;color:var(--acc2)">${f.stage}/9</span></td>
+            <td><div style="display:flex;align-items:center;gap:6px"><div class="prog-bar" style="width:56px"><div class="prog-fill" style="width:${f.bmcPct}%;background:var(--grn)"></div></div><span style="font-family:var(--font-mono);font-size:10px">${f.bmcPct}%</span></div></td>
+            <td><span style="font-family:var(--font-mono);font-weight:700;color:${f.assessScore>=70?'var(--grn)':'var(--amb)'}">${f.assessScore}%</span></td>
+            <td style="font-family:var(--font-mono);font-size:10px;color:var(--t3)">${f.lastActive}</td>
+            <td><span class="tag ${f.status==='active'?'tag-grn':'tag-red'}">${f.status}</span></td>
+          </tr>`).join('')}
+      </tbody>
+    </table>
+  </div>
+  <div class="card">
+    <div class="card-title">📅 Cohort Weekly Schedule — Week 3</div>
+    <div class="card-sub">Cohort 1 · March 2026</div>
+    ${[
+      {day:'Monday',time:'9:00 AM',session:'BMC Deep Dive — Steps 9–12',lead:'Rajiv Nair',type:'group'},
+      {day:'Wednesday',time:'10:00 AM',session:'SPARC™ Masterclass',lead:'Dr. Meera Iyer (you)',type:'group'},
+      {day:'Thursday',time:'Various',session:'1:1 Mentor Sessions',lead:'All mentors',type:'1on1'},
+      {day:'Friday',time:'4:00 PM',session:'Cohort Debrief & Wins Sharing',lead:'All trainers',type:'group'},
+    ].map(s=>`
+      <div style="display:flex;gap:12px;padding:9px 0;border-bottom:1px solid var(--br);align-items:center">
+        <div style="font-family:var(--font-mono);font-size:10px;font-weight:700;color:var(--t3);width:80px">${s.day}</div>
+        <div style="font-family:var(--font-mono);font-size:10px;color:var(--tel);width:70px">${s.time}</div>
+        <div style="flex:1"><div style="font-size:12px;font-weight:600;color:var(--t)">${s.session}</div><div style="font-size:10px;color:var(--t3)">${s.lead}</div></div>
+        <span class="tag ${s.type==='group'?'tag-acc':'tag-tel'}">${s.type}</span>
+      </div>`).join('')}
+  </div>`;
+}
+
+function renderResources(){
+  return `<div class="sl">Programme resources & tools</div>
+  <div style="display:grid;grid-template-columns:1fr;gap:6px">
+    ${RESOURCES.map(r=>`
+      <div class="resource-card" onclick="showToast('Opening ${r.title}…')">
+        <div class="resource-icon">${r.icon}</div>
+        <div style="flex:1">
+          <div style="font-size:12px;font-weight:700;color:var(--t);margin-bottom:2px">${r.title}</div>
+          <div style="font-size:10px;color:var(--t3);margin-bottom:6px">${r.desc}</div>
+          <div style="display:flex;gap:5px;align-items:center">
+            <span class="tag ${r.tag}">${r.type.toUpperCase()}</span>
+            <button class="btn btn-sm" onclick="event.stopPropagation();showToast('Downloading ${r.title}…')">⬇ Download</button>
+          </div>
+        </div>
+      </div>`).join('')}
+  </div>
+  <div class="card" style="margin-top:10px">
+    <div class="card-title">📤 Upload Resource</div>
+    <div class="card-sub">Share materials with founders or other trainers</div>
+    <div class="input-group"><div class="input-label">Resource Title</div><input type="text" placeholder="e.g. Week 4 Roleplay Exercise Sheet"></div>
+    <div class="grid-2">
+      <div class="input-group"><div class="input-label">Type</div><select><option>PDF</option><option>Presentation</option><option>Document</option><option>Template</option></select></div>
+      <div class="input-group"><div class="input-label">Visible To</div><select><option>My Founders Only</option><option>All Cohort 1</option><option>All Trainers</option><option>Admin</option></select></div>
+    </div>
+    <button class="btn btn-a" onclick="showToast('Resource uploaded ✓')">Upload Resource</button>
+  </div>`;
+}
+
+function renderProfile(){
+  return `<div class="grid-2">
+    <div>
+      <div class="card" style="text-align:center;padding:24px">
+        <div style="width:64px;height:64px;border-radius:50%;border:2px solid var(--tel);background:var(--tebg);color:var(--tel);font-family:var(--font-display);font-size:22px;font-weight:800;display:flex;align-items:center;justify-content:center;margin:0 auto 12px">${ME.avatar}</div>
+        <div style="font-family:var(--font-display);font-size:16px;font-weight:800;color:var(--t);margin-bottom:4px">${ME.name}</div>
+        <div style="font-size:11px;color:var(--tel);margin-bottom:4px">${ME.role} · ${ME.specialty}</div>
+        <div style="font-size:11px;color:var(--t3);margin-bottom:12px">${ME.email} · ${ME.city}</div>
+        <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap">
+          <span class="tag tag-grn">⭐ ${ME.rating}</span>
+          <span class="tag tag-tel">${ME.sessions} Sessions</span>
+          <span class="tag tag-acc">${MY_FOUNDERS.length} Founders</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Performance Metrics</div>
+        ${[['Session Completion Rate',96,'var(--grn)'],['Founder Satisfaction',98,'var(--gld)'],['Avg Session Rating',98,'var(--tel)'],['On-time Rate',100,'var(--acc2)']].map(([l,v,c])=>`
+          <div style="margin-bottom:8px">
+            <div class="flex-between" style="margin-bottom:3px">
+              <div style="font-size:11px;color:var(--t2)">${l}</div>
+              <div style="font-family:var(--font-mono);font-size:11px;font-weight:700;color:${c}">${v}%</div>
+            </div>
+            <div class="prog-bar-thick"><div class="prog-fill" style="width:${v}%;background:${c}"></div></div>
+          </div>`).join('')}
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="card-title">Edit Profile</div>
+        ${[['Full Name',ME.name],['Email',ME.email],['City',ME.city],['Specialty',ME.specialty]].map(([l,v])=>`
+          <div class="input-group"><div class="input-label">${l}</div><input type="text" value="${v}"></div>`).join('')}
+        <div class="input-group"><div class="input-label">Bio</div>
+          <textarea style="min-height:80px">Former head of sales at Byjus. Specialises in SPARC™ sales coaching and high-ticket closing for service and SaaS founders.</textarea>
+        </div>
+        <button class="btn btn-a" onclick="showToast('Profile updated ✓')">Save Changes</button>
+      </div>
+      <div class="card">
+        <div class="card-title">Availability Settings</div>
+        <div class="card-sub">Set your weekly session availability</div>
+        ${['Monday','Tuesday','Wednesday','Thursday','Friday'].map((d,i)=>`
+          <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--br)">
+            <div style="width:80px;font-size:11px;color:var(--t2)">${d}</div>
+            <input type="text" style="width:80px" value="${i<4?'9:00 AM':''}">
+            <span style="color:var(--t3);font-size:11px">to</span>
+            <input type="text" style="width:80px" value="${i<4?'5:00 PM':''}">
+            <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--t3);cursor:pointer">
+              <input type="checkbox" ${i<4?'checked':''} style="width:auto"> Avail
+            </label>
+          </div>`).join('')}
+        <button class="btn btn-a btn-sm" style="margin-top:8px" onclick="showToast('Availability saved ✓')">Save</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+const PANELS = {
+  dashboard: renderDashboard,
+  'my-founders': renderMyFounders,
+  sessions: renderSessions,
+  progress: renderProgress,
+  inbox: renderInbox,
+  feedback: renderFeedback,
+  cohort: renderCohort,
+  resources: renderResources,
+  profile: renderProfile,
+};
+
+const TITLES = {
+  dashboard:'Dashboard','my-founders':'My Founders',sessions:'Sessions',
+  progress:'Progress Notes',inbox:'Inbox',feedback:'Session Feedback',
+  cohort:'Cohort Overview',resources:'Resources',profile:'My Profile',
+};
+
+let contentEl;
+
+function go(panelId){
+  if(!PANELS[panelId]) return;
+  state.panel = panelId;
+  document.querySelectorAll('.nav-item').forEach(el=>{
+    const m=el.getAttribute('onclick')?.match(/go\('(.+?)'\)/);
+    if(m) el.classList.toggle('active', m[1]===panelId);
+  });
+  const titleEl = document.getElementById('topbar-title');
+  if(titleEl) titleEl.textContent = TITLES[panelId]||panelId;
+  let panel = document.getElementById('panel-'+panelId);
+  if(!panel){panel=document.createElement('div');panel.className='panel';panel.id='panel-'+panelId;contentEl.appendChild(panel);}
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  panel.innerHTML = PANELS[panelId]();
+  panel.classList.add('active');
+  contentEl.scrollTop=0;
+}
+
+function refreshPanel(){go(state.panel);}
+function setSessTab(t){state.sessTab=t;refreshPanel();}
+function setInboxTab(t){state.inboxTab=t;refreshPanel();}
+
+function toggleCheck(id){
+  state.checks[id]=!state.checks[id];
+  state.saveChecks();
+  go('dashboard');
+}
+function saveMentorNote(fId){
+  const el=document.getElementById('mentor-note-'+fId);
+  if(el){state.notes[fId]=el.value;state.saveNotes();showToast('Notes saved ✓');}
+}
+function setRating(n){
+  document.querySelectorAll('[id^="star-"]').forEach((b,i)=>{
+    b.style.opacity=i+1<=n?'1':'0.4';
+  });
+}
+function setEscalate(v){
+  document.getElementById('esc-yes')?.classList.toggle('btn-warn',v);
+  document.getElementById('esc-no')?.classList.toggle('btn-a',!v);
+}
+
+function openFounderDetail(fId){
+  const f=MY_FOUNDERS.find(x=>x.id===fId);if(!f)return;
+  document.body.insertAdjacentHTML('beforeend',`<div class="overlay" id="founder-modal" onclick="if(event.target.id==='founder-modal')closeModal()">
+    <div class="modal">
+      <div class="flex-between" style="margin-bottom:16px">
+        <div class="flex-row">
+          <div class="f-avatar" style="width:44px;height:44px;font-size:16px">${f.avatar}</div>
+          <div><div class="modal-title" style="margin-bottom:2px">${f.name}</div><div style="font-size:11px;color:var(--t3)">${f.email} · ${f.city}</div></div>
+        </div>
+        <button class="btn btn-sm" onclick="closeModal()">✕</button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:14px">
+        ${[['Stage',f.stage+'/9','var(--acc2)'],['Readiness',f.assessScore+'%','var(--grn)'],['Sessions',f.sessions.filter(s=>s.rating).length,'var(--tel)']].map(([l,v,c])=>`
+          <div style="background:var(--bg3);border-radius:7px;padding:10px;text-align:center">
+            <div style="font-family:var(--font-mono);font-size:20px;font-weight:700;color:${c}">${v}</div><div style="font-size:9px;color:var(--t3)">${l}</div>
+          </div>`).join('')}
+      </div>
+      <div class="input-group"><div class="input-label">Business</div><div style="font-size:12px;color:var(--t2);background:var(--bg3);border-radius:5px;padding:8px">${f.business}</div></div>
+      <div class="grid-2">
+        <div class="input-group"><div class="input-label">Strengths</div><div style="font-size:11px;color:var(--grn);background:var(--gnbg);border-radius:5px;padding:8px">${f.strengths}</div></div>
+        <div class="input-group"><div class="input-label">Blockers</div><div style="font-size:11px;color:var(--amb);background:var(--ambg);border-radius:5px;padding:8px">${f.blockers}</div></div>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px">
+        <button class="btn btn-sm btn-primary" onclick="closeModal();openComposeTo('${f.id}','${f.name}')">✉ Message</button>
+        <button class="btn btn-sm btn-tel" onclick="closeModal();state.focusFounder='${f.id}';go('progress')">📈 Full Notes</button>
+        <button class="btn btn-sm btn-success" onclick="closeModal();scheduleSession('${f.id}','${f.name}')">📅 Book Session</button>
+      </div>
+    </div>
+  </div>`);
+}
+
+function openMessage(id){
+  const m=INBOX_MSGS.find(x=>x.id===id);if(!m)return;
+  m.unread=false;
+  document.body.insertAdjacentHTML('beforeend',`<div class="overlay" id="msg-modal" onclick="if(event.target.id==='msg-modal')closeModal()">
+    <div class="modal">
+      <div class="flex-between" style="margin-bottom:14px"><div class="modal-title">${m.subject}</div><button class="btn btn-sm" onclick="closeModal()">✕</button></div>
+      <div class="flex-row" style="margin-bottom:12px">
+        <div class="msg-avatar">${m.avatar}</div>
+        <div><div style="font-size:12px;font-weight:700;color:var(--t)">${m.from}</div><div style="font-size:10px;color:var(--t3)">${m.time}</div></div>
+      </div>
+      <div style="font-size:12px;color:var(--t2);line-height:1.75;background:var(--bg3);border-radius:7px;padding:14px;margin-bottom:14px">${m.body}</div>
+      <div class="input-label">Reply</div>
+      <textarea id="reply-text" placeholder="Type your reply…" style="min-height:80px;margin-bottom:8px"></textarea>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-primary" onclick="closeModal();showToast('Reply sent ✓')">Send Reply</button>
+        <button class="btn" onclick="closeModal()">Close</button>
+      </div>
+    </div>
+  </div>`);
+}
+
+function openCompose(){
+  document.body.insertAdjacentHTML('beforeend',`<div class="overlay" id="compose-modal" onclick="if(event.target.id==='compose-modal')closeModal()">
+    <div class="modal">
+      <div class="flex-between" style="margin-bottom:14px"><div class="modal-title">New Message</div><button class="btn btn-sm" onclick="closeModal()">✕</button></div>
+      <div class="input-group"><div class="input-label">To</div>
+        <select>${MY_FOUNDERS.map(f=>`<option>${f.name} (Founder)</option>`).join('')}<option>Sushma (Admin)</option><option>Rajiv Nair (Trainer)</option></select>
+      </div>
+      <div class="input-group"><div class="input-label">Subject</div><input type="text" placeholder="Session notes, check-in, resource share…"></div>
+      <div class="input-group"><div class="input-label">Message</div><textarea style="min-height:120px" placeholder="Write your message…"></textarea></div>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-primary" onclick="closeModal();showToast('Message sent ✓')">Send</button>
+        <button class="btn" onclick="closeModal()">Cancel</button>
+      </div>
+    </div>
+  </div>`);
+}
+
+function openComposeTo(fId,fName){
+  document.body.insertAdjacentHTML('beforeend',`<div class="overlay" id="compose-modal" onclick="if(event.target.id==='compose-modal')closeModal()">
+    <div class="modal">
+      <div class="flex-between" style="margin-bottom:14px"><div class="modal-title">Message ${fName}</div><button class="btn btn-sm" onclick="closeModal()">✕</button></div>
+      <div class="input-group"><div class="input-label">To</div><input type="text" value="${fName}" readonly style="background:var(--bg4)"></div>
+      <div class="input-group"><div class="input-label">Subject</div><input type="text" placeholder="Session update, resource, feedback…"></div>
+      <div class="input-group"><div class="input-label">Message</div><textarea style="min-height:120px" placeholder="Write your message…"></textarea></div>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-primary" onclick="closeModal();showToast('Message sent to ${fName} \u2713')">Send</button>
+        <button class="btn" onclick="closeModal()">Cancel</button>
+      </div>
+    </div>
+  </div>`);
+}
+
+function openSessionNotes(fId){
+  const f=MY_FOUNDERS.find(x=>x.id===fId);if(!f)return;
+  const saved=localStorage.getItem('prep_'+fId)||'';
+  const nextS=UPCOMING_SESSIONS.find(s=>s.founderId===fId);
+  document.body.insertAdjacentHTML('beforeend',`<div class="overlay" id="snotes-modal" onclick="if(event.target.id==='snotes-modal')closeModal()">
+    <div class="modal">
+      <div class="flex-between" style="margin-bottom:14px"><div class="modal-title">Session Prep — ${f.name}</div><button class="btn btn-sm" onclick="closeModal()">✕</button></div>
+      ${nextS?`<div class="alert alert-info" style="margin-bottom:12px">Next session: ${nextS.type} · ${nextS.date} · ${nextS.time}</div>`:''}
+      <div class="input-group"><div class="input-label">Prep Notes</div>
+        <textarea id="prep-note-${fId}" style="min-height:130px" placeholder="What to cover, questions to ask, roleplay scenarios to run…">${saved}</textarea>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-primary" onclick="savePrepNote('${fId}')">Save</button>
+        <button class="btn" onclick="closeModal()">Close</button>
+      </div>
+    </div>
+  </div>`);
+}
+
+function savePrepNote(fId){
+  const el=document.getElementById('prep-note-'+fId);
+  if(el){localStorage.setItem('prep_'+fId,el.value);closeModal();showToast('Prep notes saved \u2713');}
+}
+
+function openSessionForm(sId){
+  const s=UPCOMING_SESSIONS.find(x=>x.id===sId);if(!s)return;
+  document.body.insertAdjacentHTML('beforeend',`<div class="overlay" id="sf-modal" onclick="if(event.target.id==='sf-modal')closeModal()">
+    <div class="modal">
+      <div class="flex-between" style="margin-bottom:14px"><div class="modal-title">▶ ${s.type} — ${s.founder}</div><button class="btn btn-sm" onclick="closeModal()">✕</button></div>
+      <div class="alert alert-ok" style="margin-bottom:12px">Session started · ${new Date().toLocaleTimeString()}</div>
+      <div class="input-group"><div class="input-label">Rating</div>
+        <div style="display:flex;gap:6px;margin-top:2px">${[1,2,3,4,5].map(n=>`<button class="btn btn-sm" onclick="this.parentElement.querySelectorAll('.btn').forEach(b=>b.style.opacity='.4');this.style.opacity='1'">${'⭐'.repeat(n)}</button>`).join('')}</div>
+      </div>
+      <div class="input-group"><div class="input-label">Session Notes</div><textarea style="min-height:90px" placeholder="Key observations, founder wins, areas to work on…"></textarea></div>
+      <div class="input-group"><div class="input-label">Action Items (for founder)</div><textarea style="min-height:60px" placeholder="What must the founder do before next session?"></textarea></div>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-primary" onclick="closeModal();showToast('Session completed and logged \u2713')">Complete Session</button>
+        <button class="btn" onclick="closeModal()">Cancel</button>
+      </div>
+    </div>
+  </div>`);
+}
+
+function scheduleSession(fId,fName){
+  document.body.insertAdjacentHTML('beforeend',`<div class="overlay" id="sched-modal" onclick="if(event.target.id==='sched-modal')closeModal()">
+    <div class="modal">
+      <div class="flex-between" style="margin-bottom:14px"><div class="modal-title">Schedule New Session</div><button class="btn btn-sm" onclick="closeModal()">✕</button></div>
+      <div class="input-group"><div class="input-label">Founder</div>
+        <select>${MY_FOUNDERS.map(f=>`<option value="${f.id}" ${f.id===fId?'selected':''}>${f.name}</option>`).join('')}</select>
+      </div>
+      <div class="input-group"><div class="input-label">Session Type</div>
+        <select><option>SPARC™ Roleplay</option><option>Script Review</option><option>Pricing Workshop</option><option>Progress Check-in</option><option>VSL Critique</option></select>
+      </div>
+      <div class="grid-2">
+        <div class="input-group"><div class="input-label">Date & Time</div><input type="datetime-local"></div>
+        <div class="input-group"><div class="input-label">Duration</div><select><option>30 min</option><option>45 min</option><option selected>60 min</option><option>90 min</option></select></div>
+      </div>
+      <div class="input-group"><div class="input-label">Prep Note for Founder</div><textarea placeholder="What should the founder prepare?"></textarea></div>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-primary" onclick="closeModal();showToast('Session scheduled and invite sent \u2713')">Schedule & Notify</button>
+        <button class="btn" onclick="closeModal()">Cancel</button>
+      </div>
+    </div>
+  </div>`);
+}
+
+function confirmSession(sId){
+  const s=UPCOMING_SESSIONS.find(x=>x.id===sId);
+  if(s){s.status='confirmed';go('sessions');showToast('Session confirmed \u2713');}
+}
+
+function closeModal(){
+  const m=document.querySelector('.overlay');if(m)m.remove();
+}
+
+function showToast(msg,ok=true){
+  const t=document.createElement('div');
+  t.className='toast';
+  t.style.cssText=`background:${ok?'var(--gnbg)':'var(--rebg)'};border:1px solid ${ok?'rgba(0,230,118,.3)':'rgba(239,83,80,.3)'};color:${ok?'var(--grn)':'var(--red)'}`;
+  t.textContent=msg;
+  document.body.appendChild(t);
+  setTimeout(()=>{t.style.opacity='0';setTimeout(()=>t.remove(),300);},2500);
+}
+
+const _fns={go,toggleTrainerTheme,toggleCheck,saveMentorNote,setRating,setEscalate,
+  openFounderDetail,openMessage,openCompose,openComposeTo,openSessionNotes,savePrepNote,
+  openSessionForm,scheduleSession,confirmSession,closeModal,showToast,
+  setSessTab,setInboxTab,refreshPanel};
+Object.keys(_fns).forEach(k=>{window[k]=_fns[k];});
+
+function boot(){
+  const app=document.getElementById('app');
+  app.innerHTML=renderSidebar()+`<div class="main">${renderTopbar()}<div class="content" id="content"></div></div>`;
+  contentEl=document.getElementById('content');
+  go('dashboard');
+  themeSystem.apply(themeSystem.current,false);
+}
+document.addEventListener('DOMContentLoaded',boot);
+})();
+
+</script>
+</body>
+</html>

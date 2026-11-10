@@ -1,0 +1,1971 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LaunchOS™ Admin & Mentor Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Cabinet+Grotesk:wght@300;400;500;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ── LaunchOS Admin Portal ── */
+:root {
+  --bg:#07080c;--bg2:#0d0f18;--bg3:#131620;--bg4:#191d28;--bg5:#202535;
+  --br:#1e2335;--br2:#2a3050;--br3:#374060;
+  --t:#e4e8f5;--t2:#8892b0;--t3:#4a5580;--t4:#2e3655;
+  --acc:#6c5ce7;--acc2:#a29bfe;--accbg:rgba(108,92,231,.12);
+  --grn:#00e676;--gnbg:rgba(0,230,118,.1);
+  --amb:#ffca28;--ambg:rgba(255,202,40,.1);
+  --cor:#ff7043;--cobg:rgba(255,112,67,.1);
+  --blu:#2979ff;--blbg:rgba(41,121,255,.1);
+  --tel:#26c6da;--tebg:rgba(38,198,218,.1);
+  --pnk:#f06292;--pkbg:rgba(240,98,146,.1);
+  --red:#ef5350;--rebg:rgba(239,83,80,.1);
+  --gld:#ffd740;--gobg:rgba(255,215,64,.1);
+  --font-display:'Syne',sans-serif;--font-body:'Cabinet Grotesk',sans-serif;--font-mono:'JetBrains Mono',monospace;
+}
+html[data-theme="light"] {
+  --bg:#f5f6fa;--bg2:#fff;--bg3:#eef0f7;--bg4:#e4e7f2;--bg5:#d8dcee;
+  --br:#dde1f0;--br2:#c8ceea;--br3:#b0b8e0;
+  --t:#111827;--t2:#374151;--t3:#6b7280;--t4:#9ca3af;
+  --acc:#6c5ce7;--acc2:#5b4bd4;--accbg:rgba(108,92,231,.1);
+  --grn:#00a854;--gnbg:rgba(0,168,84,.1);
+  --amb:#c88a00;--ambg:rgba(200,138,0,.1);
+  --cor:#e84e2a;--cobg:rgba(232,78,42,.1);
+  --red:#dc2626;--rebg:rgba(220,38,38,.1);
+  --gld:#d97706;--gobg:rgba(217,119,6,.1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:var(--font-body);background:var(--bg);color:var(--t);font-size:13px;line-height:1.6;-webkit-font-smoothing:antialiased}
+button{cursor:pointer;font-family:var(--font-body)}
+input,textarea,select{font-family:var(--font-body)}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-thumb{background:var(--br2);border-radius:2px}
+#app{display:flex;height:100vh;overflow:hidden}
+
+/* Sidebar */
+.sidebar{width:220px;min-width:220px;background:var(--bg2);border-right:1px solid var(--br);display:flex;flex-direction:column;overflow:hidden}
+.brand{padding:16px;border-bottom:1px solid var(--br)}
+.brand-logo{font-family:var(--font-display);font-size:17px;font-weight:800;background:linear-gradient(135deg,#ff7043,#ffd740);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.brand-role{font-family:var(--font-mono);font-size:9px;color:var(--t3);margin-top:2px;text-transform:uppercase;letter-spacing:.1em}
+.nav{flex:1;overflow-y:auto;padding:8px 0}
+.nav-grp{font-family:var(--font-mono);font-size:9px;color:var(--t4);padding:10px 14px 3px;letter-spacing:.1em;text-transform:uppercase}
+.nav-item{display:flex;align-items:center;gap:9px;padding:7px 12px 7px 14px;font-size:12px;font-weight:500;color:var(--t2);border-left:2px solid transparent;transition:all .12s;cursor:pointer;user-select:none}
+.nav-item:hover{background:var(--bg3);color:var(--t)}
+.nav-item.active{background:var(--accbg);color:var(--acc2);border-left-color:var(--acc)}
+.nav-icon{width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0}
+.nav-badge{margin-left:auto;font-family:var(--font-mono);font-size:8px;padding:2px 5px;border-radius:3px;background:var(--bg4);color:var(--t3)}
+.nav-badge.warn{background:var(--ambg);color:var(--amb)}
+.nav-badge.ok{background:var(--gnbg);color:var(--grn)}
+
+/* Main */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.topbar{height:52px;background:var(--bg2);border-bottom:1px solid var(--br);display:flex;align-items:center;padding:0 20px;gap:10px;flex-shrink:0}
+.topbar-title{font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--t);flex:1}
+.content{flex:1;overflow-y:auto;padding:20px;background:var(--bg)}
+.panel{display:none;animation:fadeIn .2s ease}
+.panel.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+/* Cards */
+.card{background:var(--bg2);border:1px solid var(--br);border-radius:9px;padding:16px;margin-bottom:10px}
+.card-title{font-family:var(--font-display);font-size:13px;font-weight:700;color:var(--t);margin-bottom:3px}
+.card-sub{font-size:11px;color:var(--t3);margin-bottom:12px;line-height:1.55}
+.sl{font-family:var(--font-mono);font-size:9px;font-weight:500;color:var(--t3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px}
+
+/* Metrics */
+.mrow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:14px}
+.met{background:var(--bg2);border:1px solid var(--br);border-radius:9px;padding:12px}
+.met-label{font-family:var(--font-mono);font-size:9px;color:var(--t3);margin-bottom:5px;text-transform:uppercase;letter-spacing:.06em}
+.met-val{font-family:var(--font-mono);font-size:22px;font-weight:500;margin-bottom:2px}
+.met-sub{font-size:10px;color:var(--t3)}
+
+/* Buttons */
+.btn{font-family:var(--font-body);font-size:12px;font-weight:500;padding:7px 14px;border-radius:6px;border:1px solid var(--br2);background:var(--bg4);color:var(--t2);cursor:pointer;transition:all .12s;display:inline-flex;align-items:center;gap:5px}
+.btn:hover{background:var(--bg5);color:var(--t)}
+.btn-primary{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:600}
+.btn-primary:hover{background:#7c6cf0;color:#fff}
+.btn-success{background:var(--gnbg);border-color:rgba(0,230,118,.3);color:var(--grn)}
+.btn-warn{background:var(--ambg);border-color:rgba(255,202,40,.3);color:var(--amb)}
+.btn-sm{font-size:11px;padding:4px 10px}
+.btn-a{background:var(--accbg);border-color:rgba(108,92,231,.3);color:var(--acc2);font-weight:600}
+
+/* Inputs */
+input[type="text"],input[type="email"],input[type="password"],input[type="number"],input[type="datetime-local"],input[type="search"],select,textarea{
+  width:100%;background:var(--bg3);border:1px solid var(--br);border-radius:5px;color:var(--t);font-size:12px;padding:7px 10px;outline:none;transition:border-color .12s;appearance:none;font-family:var(--font-body)
+}
+input:focus,select:focus,textarea:focus{border-color:var(--acc)}
+textarea{resize:vertical;min-height:72px;line-height:1.6}
+.input-label{font-size:9px;font-weight:500;color:var(--t3);margin-bottom:3px;font-family:var(--font-mono);letter-spacing:.06em;text-transform:uppercase}
+.input-group{margin-bottom:8px}
+
+/* Tables */
+.data-table{width:100%;border-collapse:collapse;font-size:11px}
+.data-table th{background:var(--bg4);color:var(--t2);padding:8px 10px;text-align:left;font-weight:600;font-size:10px;letter-spacing:.05em;text-transform:uppercase}
+.data-table td{padding:8px 10px;border-bottom:1px solid var(--br);color:var(--t2)}
+.data-table tr:last-child td{border-bottom:none}
+.data-table tr:hover td{background:var(--bg3)}
+
+/* Tags */
+.tag{font-family:var(--font-mono);font-size:10px;font-weight:500;padding:2px 7px;border-radius:4px;display:inline-block;margin:2px}
+.tag-grn{background:var(--gnbg);color:var(--grn)}
+.tag-amb{background:var(--ambg);color:var(--amb)}
+.tag-cor{background:var(--cobg);color:var(--cor)}
+.tag-acc{background:var(--accbg);color:var(--acc2)}
+.tag-red{background:var(--rebg);color:var(--red)}
+.tag-tel{background:var(--tebg);color:var(--tel)}
+
+/* Progress bar */
+.prog-bar{height:5px;background:var(--bg5);border-radius:3px;overflow:hidden}
+.prog-fill{height:100%;border-radius:3px;transition:width .5s ease}
+
+/* Tab rows */
+.tab-row{display:flex;border:1px solid var(--br);border-radius:6px;overflow:hidden;margin-bottom:12px;background:var(--bg2)}
+.tab-btn{flex:1;font-size:11px;font-weight:500;padding:7px 4px;cursor:pointer;background:none;border:none;color:var(--t3);transition:all .12s;text-align:center;font-family:var(--font-body)}
+.tab-btn:hover{background:var(--bg3);color:var(--t2)}
+.tab-btn.active{background:var(--accbg);color:var(--acc2)}
+
+/* Grid */
+.grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.flex-row{display:flex;align-items:center;gap:8px}
+.flex-between{display:flex;align-items:center;justify-content:space-between}
+
+/* Message/Inbox */
+.msg-list{display:flex;flex-direction:column;gap:4px}
+.msg-item{display:flex;gap:10px;padding:10px 12px;background:var(--bg3);border-radius:7px;border:1px solid var(--br);cursor:pointer;transition:all .12s}
+.msg-item:hover{border-color:var(--br2);background:var(--bg4)}
+.msg-item.unread{border-left:3px solid var(--acc)}
+.msg-avatar{width:34px;height:34px;border-radius:50%;background:var(--accbg);color:var(--acc2);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0}
+.msg-preview{flex:1;min-width:0}
+.msg-name{font-size:12px;font-weight:600;color:var(--t);margin-bottom:2px}
+.msg-text{font-size:11px;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.msg-meta{font-family:var(--font-mono);font-size:9px;color:var(--t4);text-align:right;white-space:nowrap;flex-shrink:0}
+
+/* Calendar */
+.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}
+.cal-day{padding:6px 4px;border-radius:5px;text-align:center;font-size:11px;cursor:pointer;transition:all .12s;border:1px solid transparent;min-height:56px;vertical-align:top}
+.cal-day:hover{background:var(--bg3);border-color:var(--br)}
+.cal-day.today{background:var(--accbg);border-color:var(--acc);color:var(--acc2)}
+.cal-day.has-event{border-color:var(--grn)}
+.cal-day-num{font-weight:600;color:var(--t2);margin-bottom:3px}
+.cal-event-dot{width:5px;height:5px;border-radius:50%;background:var(--acc);margin:1px auto}
+.cal-header{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px;margin-bottom:4px}
+.cal-header-day{text-align:center;font-family:var(--font-mono);font-size:9px;font-weight:600;color:var(--t3);padding:3px 0;text-transform:uppercase}
+
+/* Appointment slots */
+.slot{display:flex;align-items:center;gap:8px;padding:9px 12px;background:var(--bg3);border:1px solid var(--br);border-radius:6px;margin-bottom:5px;cursor:pointer;transition:all .12s}
+.slot:hover{border-color:var(--acc);background:var(--accbg)}
+.slot-time{font-family:var(--font-mono);font-size:11px;font-weight:600;color:var(--acc2);width:80px;flex-shrink:0}
+.slot-info{flex:1;font-size:11px;color:var(--t2)}
+.slot-badge{font-family:var(--font-mono);font-size:8px;padding:2px 6px;border-radius:3px;flex-shrink:0}
+
+/* Founder card */
+.founder-card{background:var(--bg2);border:1px solid var(--br);border-radius:9px;padding:14px;cursor:pointer;transition:all .15s}
+.founder-card:hover{border-color:var(--br2);background:var(--bg3)}
+.founder-avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;flex-shrink:0;background:var(--accbg);color:var(--acc2)}
+.founder-name{font-size:13px;font-weight:700;color:var(--t);margin-bottom:2px}
+.founder-meta{font-size:10px;color:var(--t3)}
+
+/* Email compose */
+.compose-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:9999}
+.compose-box{background:var(--bg2);border:1px solid var(--br2);border-radius:12px;padding:24px;width:560px;max-width:95vw;max-height:90vh;overflow-y:auto}
+.email-providers{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.email-provider-btn{padding:6px 12px;border-radius:6px;border:1px solid var(--br);background:var(--bg3);color:var(--t2);cursor:pointer;font-size:11px;font-weight:500;display:flex;align-items:center;gap:5px;transition:all .12s}
+.email-provider-btn:hover{border-color:var(--acc);color:var(--acc2)}
+.email-provider-btn.active{background:var(--accbg);border-color:var(--acc);color:var(--acc2)}
+
+/* Thinking */
+.thinking{color:var(--t3);font-style:italic;font-size:11px}
+.thinking::after{content:'';display:inline-block;width:4px;height:4px;border-radius:50%;background:var(--acc2);animation:pulse 1.2s ease infinite;margin-left:6px}
+@keyframes pulse{0%,100%{opacity:.3}50%{opacity:1}}
+
+/* Theme toggle */
+.theme-toggle{display:flex;align-items:center;gap:5px;background:var(--bg3);border:1px solid var(--br);border-radius:20px;padding:4px 10px;cursor:pointer;font-family:var(--font-mono);font-size:10px;color:var(--t2);transition:all .2s;user-select:none}
+.toggle-track{width:28px;height:15px;background:var(--br2);border-radius:8px;position:relative;transition:background .2s;flex-shrink:0}
+.toggle-thumb{width:11px;height:11px;background:var(--t2);border-radius:50%;position:absolute;top:2px;left:2px;transition:all .2s}
+html[data-theme="light"] .toggle-track{background:var(--acc)}
+html[data-theme="light"] .toggle-thumb{left:15px;background:#fff}
+
+@media (max-width:768px){.sidebar{width:52px;min-width:52px}.sidebar .brand-role,.sidebar .nav-grp,.sidebar .nav-item span:not(.nav-icon),.sidebar .nav-badge{display:none}.nav-item{justify-content:center;padding:8px}.mrow{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+(function(){
+'use strict';
+
+// ═══════════════════════════════════════════════════════════
+// LaunchOS™ Admin & Mentor Portal
+// Roles: admin | mentor
+// ═══════════════════════════════════════════════════════════
+
+// ── Theme ────────────────────────────────────────────────
+const THEME_KEY = 'los_admin_theme';
+const themeSystem = {
+  current: localStorage.getItem(THEME_KEY) || 'dark',
+  init() { this.apply(this.current, false); },
+  apply(t, save=true) {
+    this.current = t;
+    document.documentElement.setAttribute('data-theme', t);
+    if (save) localStorage.setItem(THEME_KEY, t);
+    const icon = document.getElementById('theme-icon');
+    const lbl  = document.getElementById('theme-label');
+    if (icon) icon.textContent = t === 'light' ? '☀️' : '🌙';
+    if (lbl)  lbl.textContent  = t === 'light' ? 'Light' : 'Dark';
+  },
+  toggle() { this.apply(this.current === 'dark' ? 'light' : 'dark'); }
+};
+themeSystem.init();
+window.toggleAdminTheme = () => themeSystem.toggle();
+
+// ── Portal State ─────────────────────────────────────────
+const portalState = {
+  role:         localStorage.getItem('los_portal_role') || 'admin',
+  currentPanel: 'dashboard',
+  currentFounder: null,
+  messages:     JSON.parse(localStorage.getItem('los_msgs') || '[]'),
+  appointments: JSON.parse(localStorage.getItem('los_appts') || '[]'),
+  emailProvider: localStorage.getItem('los_email_prov') || '',
+  emailConnected: false,
+  composeOpen:  false,
+  calMonth:     new Date().getMonth(),
+  calYear:      new Date().getFullYear(),
+
+  saveMessages() { localStorage.setItem('los_msgs', JSON.stringify(this.messages)); },
+  saveAppts()    { localStorage.setItem('los_appts', JSON.stringify(this.appointments)); },
+
+  get isAdmin()  { return this.role === 'admin'; },
+  get isMentor() { return this.role === 'mentor'; },
+};
+
+// ── Demo Data ─────────────────────────────────────────────
+const DEMO_FOUNDERS = [
+  { id:'f1', name:'Arjun Sharma', email:'arjun@startup.in', business:'EdTech platform for Tier-2 cities', stage:6, bmcPct:85, assessScore:72, surveyResp:45, lastActive:'2h ago', status:'active', city:'Hyderabad', avatar:'AS' },
+  { id:'f2', name:'Priya Mehta', email:'priya@ventures.co', business:'D2C organic skincare brand', stage:9, bmcPct:100, assessScore:88, surveyResp:100, lastActive:'1d ago', status:'graduated', city:'Mumbai', avatar:'PM' },
+  { id:'f3', name:'Rahul Gupta', email:'rahul@scale.io', business:'B2B SaaS for HR teams', stage:4, bmcPct:60, assessScore:65, surveyResp:12, lastActive:'3d ago', status:'at-risk', city:'Bengaluru', avatar:'RG' },
+  { id:'f4', name:'Neha Patel', email:'neha@brand.com', business:'Food delivery aggregator', stage:2, bmcPct:30, assessScore:55, surveyResp:0, lastActive:'5d ago', status:'at-risk', city:'Ahmedabad', avatar:'NP' },
+  { id:'f5', name:'Kiran Rao', email:'kiran@fintech.in', business:'Micro-lending for MSMEs', stage:7, bmcPct:90, assessScore:82, surveyResp:78, lastActive:'6h ago', status:'active', city:'Pune', avatar:'KR' },
+  { id:'f6', name:'Divya Singh', email:'divya@health.co', business:'Mental health app for corporates', stage:5, bmcPct:75, assessScore:79, surveyResp:55, lastActive:'12h ago', status:'active', city:'Delhi', avatar:'DS' },
+];
+
+const DEMO_MESSAGES = [
+  { id:'m1', from:'Arjun Sharma', fromId:'f1', to:'mentor', subject:'SPARC™ script review needed', body:'Hi, I\'ve completed my SPARC™ script using the BMC. Could you review the Amplify and Resolve stages? I\'m not sure I\'ve captured the cost of inaction correctly.', time:'2h ago', unread:true, avatar:'AS' },
+  { id:'m2', from:'Priya Mehta', fromId:'f2', to:'mentor', subject:'Survey results — ready for analysis', body:'We\'ve hit 100 responses! The validation is strong — 68% said definitely yes. Can we schedule a call to review before I move to offer design?', time:'1d ago', unread:true, avatar:'PM' },
+  { id:'m3', from:'Rahul Gupta', fromId:'f3', to:'admin', subject:'Need help — stuck on pricing', body:'I\'m struggling with the 3-tier pricing. My B2B SaaS pricing is very different from service pricing. Can someone guide me?', time:'3d ago', unread:false, avatar:'RG' },
+  { id:'m4', from:'Kiran Rao', fromId:'f5', to:'mentor', subject:'Moodle course access issue', body:'I cannot access Week 3 content on the LMS. It says I\'m not enrolled. Could you check my enrolment?', time:'6h ago', unread:true, avatar:'KR' },
+];
+
+const DEMO_APPTS = [
+  { id:'a1', founderId:'f1', founderName:'Arjun Sharma', type:'Script Review', date:'2026-03-25', time:'10:00', duration:45, status:'confirmed', notes:'Review SPARC™ Amplify + Resolve stages' },
+  { id:'a2', founderId:'f2', founderName:'Priya Mehta', type:'Progress Call', date:'2026-03-26', time:'14:00', duration:30, status:'confirmed', notes:'Survey results review and offer design kickoff' },
+  { id:'a3', founderId:'f5', founderName:'Kiran Rao', type:'Discovery Call Practice', date:'2026-03-28', time:'11:00', duration:60, status:'pending', notes:'Practice discovery call with mentor playing prospect' },
+  { id:'a4', founderId:'f3', founderName:'Rahul Gupta', type:'Pricing Workshop', date:'2026-04-01', time:'15:00', duration:45, status:'pending', notes:'B2B SaaS pricing strategy session' },
+];
+
+// Merge demo data if empty
+if (portalState.messages.length === 0) {
+  portalState.messages = DEMO_MESSAGES;
+  portalState.saveMessages();
+}
+if (portalState.appointments.length === 0) {
+  portalState.appointments = DEMO_APPTS;
+  portalState.saveAppts();
+}
+
+
+// ── Trainer / Mentor Data ────────────────────────────────
+const DEMO_TRAINERS = [
+  { id:'t1', name:'Dr. Meera Iyer',     email:'meera@launchos.in',   role:'mentor',  specialty:'Sales & SPARC™',       cohorts:['c1'],         founders:['f1','f6'],    sessions:14, rating:4.9, city:'Bengaluru', avatar:'MI', phone:'+91 98765 11111', status:'active',  joinDate:'2025-10-01', bio:'Former head of sales at Byjus. Specialises in SPARC™ sales coaching and high-ticket closing.' },
+  { id:'t2', name:'Rajiv Nair',         email:'rajiv@launchos.in',   role:'trainer', specialty:'BMC & Offer Design',   cohorts:['c1','c2'],    founders:['f2','f3'],    sessions:22, rating:4.7, city:'Mumbai',    avatar:'RN', phone:'+91 98765 22222', status:'active',  joinDate:'2025-09-15', bio:'Serial entrepreneur, 3 successful exits. Specialises in business model validation and offer design.' },
+  { id:'t3', name:'Ananya Krishnan',    email:'ananya@launchos.in',  role:'mentor',  specialty:'Marketing & VSL',      cohorts:['c2'],         founders:['f4','f5'],    sessions:9,  rating:4.8, city:'Chennai',   avatar:'AK', phone:'+91 98765 33333', status:'active',  joinDate:'2025-11-01', bio:'Digital marketing expert, former VP Marketing at MakeMyTrip. VSL and funnel specialist.' },
+  { id:'t4', name:'Sanjay Verma',       email:'sanjay@launchos.in',  role:'trainer', specialty:'Finance & Capital',    cohorts:['c3'],         founders:[],             sessions:6,  rating:4.6, city:'Delhi',     avatar:'SV', phone:'+91 98765 44444', status:'active',  joinDate:'2026-01-10', bio:'CFO background, startup finance advisor. Specialises in capital planning and investor readiness.' },
+  { id:'t5', name:'Preethi Subramaniam',email:'preethi@launchos.in', role:'mentor',  specialty:'MVP & Market Validation', cohorts:[],           founders:[],             sessions:0,  rating:null,city:'Hyderabad',avatar:'PS', phone:'+91 98765 55555', status:'onboarding',joinDate:'2026-03-15', bio:'Product manager, ex-Flipkart. Expert in MVP validation, customer discovery, and lean startup.' },
+];
+
+const DEMO_COHORTS = [
+  { id:'c1', name:'Cohort 1 — March 2026', startDate:'2026-03-01', endDate:'2026-08-31', status:'active',   capacity:10, founders:['f1','f2','f6'], trainers:['t1','t2'], description:'First batch — service and SaaS founders', stage:'Week 3 of 18' },
+  { id:'c2', name:'Cohort 2 — June 2026',  startDate:'2026-06-01', endDate:'2026-11-30', status:'planning', capacity:12, founders:['f3','f4','f5'], trainers:['t2','t3'], description:'Second batch — product and D2C founders',  stage:'Not started' },
+  { id:'c3', name:'Cohort 3 — Sep 2026',   startDate:'2026-09-01', endDate:'2027-02-28', status:'open',     capacity:15, founders:[],               trainers:['t4'],      description:'Third batch — open for applications',      stage:'Enrolments open' },
+];
+
+const TRAINER_MESSAGES = [
+  { id:'tm1', from:'Dr. Meera Iyer',  fromId:'t1', to:'admin', subject:'Arjun needs extra SPARC™ session', body:'Hi, I reviewed Arjun SPARC™ script. The Probe stage is weak — he is not going deep enough into past failures. I would like to schedule an extra 60-min roleplay session this week. Can you approve the additional hours?', time:'3h ago', unread:true,  avatar:'MI', type:'trainer' },
+  { id:'tm2', from:'Rajiv Nair',      fromId:'t2', to:'admin', subject:'Cohort 1 — Week 3 session notes', body:'Week 3 BMC session completed. All 4 founders in Cohort 1 have now finished Steps 1-8. Priya is outstanding — already at 100% BMC. Rahul is struggling with pricing — suggesting a 1:1 before Week 4.', time:'1d ago', unread:true,  avatar:'RN', type:'trainer' },
+  { id:'tm3', from:'Ananya Krishnan', fromId:'t3', to:'admin', subject:'VSL workshop materials ready', body:'I have prepared the VSL workshop slides and exercise templates for Cohort 2. Ready to share with founders. Also — Neha Patel has not logged in for 5 days. Might need a check-in call.', time:'2d ago', unread:false, avatar:'AK', type:'trainer' },
+];
+
+// Merge trainer messages into portal messages
+if (!portalState.trainerMsgsLoaded) {
+  TRAINER_MESSAGES.forEach(m => {
+    if (!portalState.messages.find(x => x.id === m.id)) {
+      portalState.messages.unshift(m);
+    }
+  });
+  portalState.trainerMsgsLoaded = true;
+  portalState.saveMessages();
+}
+
+let currentTrainer = null;
+let currentCohort  = null;
+
+// ── Navigation ────────────────────────────────────────────
+const NAV = [
+  { group: 'Overview' },
+  { id:'dashboard',    label:'Dashboard',        icon:'⌂',  bg:'var(--accbg)',  col:'var(--acc2)' },
+  { id:'founders',     label:'All Founders',     icon:'👥', bg:'var(--pkbg)',   col:'var(--pnk)',  badge:() => DEMO_FOUNDERS.length },
+  { id:'progress',     label:'Progress Tracker', icon:'📈', bg:'var(--gnbg)',   col:'var(--grn)' },
+
+  { group: 'Communication' },
+  { id:'inbox',        label:'Inbox',            icon:'✉',  bg:'var(--blbg)',   col:'var(--blu)',  badge:() => portalState.messages.filter(m=>m.unread).length, badgeCls:'warn' },
+  { id:'compose',      label:'Send Email',       icon:'✉',  bg:'var(--tebg)',   col:'var(--tel)' },
+  { id:'appointments', label:'Appointments',     icon:'📅', bg:'var(--ambg)',   col:'var(--amb)',  badge:() => DEMO_APPTS.filter(a=>a.status==='pending').length, badgeCls:'warn' },
+  { id:'calendar',     label:'Calendar',         icon:'🗓', bg:'var(--gnbg)',   col:'var(--grn)' },
+
+  { group: 'Management' },
+  ...(true ? [
+    { id:'trainers',   label:'Trainers & Mentors', icon:'🎓', bg:'var(--tebg)',   col:'var(--tel)',  badge:() => DEMO_TRAINERS.filter(t=>t.status==='active').length },
+    { id:'cohorts',    label:'Cohorts',           icon:'◈',  bg:'var(--gobg)',   col:'var(--gld)',  badge:() => DEMO_COHORTS.length },
+    { id:'trainercomm',label:'Trainer Inbox',     icon:'💬', bg:'var(--pkbg)',   col:'var(--pnk)',  badge:() => TRAINER_MESSAGES.filter(m=>m.unread).length, badgeCls:'warn' },
+    { id:'reports',    label:'Reports',           icon:'📊', bg:'var(--cobg)',   col:'var(--cor)' },
+    { id:'settings',   label:'Settings',          icon:'⚙',  bg:'var(--bg4)',    col:'var(--t3)' },
+  ] : []),
+];
+
+// ── Render Sidebar ────────────────────────────────────────
+function renderSidebar() {
+  const unread = portalState.messages.filter(m=>m.unread).length;
+  const pendingAppts = DEMO_APPTS.filter(a=>a.status==='pending').length;
+  return `
+    <div class="sidebar">
+      <div class="brand">
+        <div class="brand-logo">LaunchOS™</div>
+        <div class="brand-role">${portalState.role === 'admin' ? '⚡ Admin Portal' : '🎓 Mentor Portal'}</div>
+      </div>
+      <nav class="nav">
+        ${NAV.map(item => {
+          if (item.group) return `<div class="nav-grp">${item.group}</div>`;
+          const cnt = item.badge ? item.badge() : 0;
+          const badge = cnt > 0 ? `<span class="nav-badge ${item.badgeCls||''}">${cnt}</span>` : '';
+          return `<div class="nav-item ${portalState.currentPanel===item.id?'active':''}" onclick="navigate('${item.id}')">
+            <div class="nav-icon" style="background:${item.bg};color:${item.col}">${item.icon}</div>
+            <span>${item.label}</span>${badge}
+          </div>`;
+        }).join('')}
+      </nav>
+      <div style="padding:12px;border-top:1px solid var(--br);font-size:10px;color:var(--t3)">
+        <div style="font-weight:600;color:var(--t2);margin-bottom:2px">${portalState.role === 'admin' ? 'Sushma Admin' : 'Mentor'}</div>
+        <div>${portalState.role}</div>
+        <div style="margin-top:8px;display:flex;gap:6px">
+          <button class="btn btn-sm" onclick="switchRole()" style="font-size:9px">Switch to ${portalState.role==='admin'?'Mentor':'Admin'}</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ── Render Topbar ─────────────────────────────────────────
+const PANEL_TITLES = {
+  dashboard:'Dashboard',founders:'All Founders',progress:'Progress Tracker',
+  inbox:'Inbox',compose:'Send Email',appointments:'Appointments',
+  calendar:'Calendar',trainers:'Trainers & Mentors',cohorts:'Cohorts',
+  trainercomm:'Trainer Communication',reports:'Reports',settings:'Settings',
+};
+
+function renderTopbar() {
+  return `
+    <div class="topbar">
+      <div class="topbar-title" id="topbar-title">Dashboard</div>
+      <div class="theme-toggle" onclick="window.toggleAdminTheme()">
+        <span id="theme-icon">🌙</span>
+        <div class="toggle-track"><div class="toggle-thumb"></div></div>
+        <span id="theme-label">Dark</span>
+      </div>
+      <button class="btn btn-primary" onclick="openCompose()">✉ New Message</button>
+      <button class="btn btn-success" onclick="navigate('appointments')">+ Book Appointment</button>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// PANEL: DASHBOARD
+// ═══════════════════════════════════════════════════════════
+function renderDashboard() {
+  const active    = DEMO_FOUNDERS.filter(f=>f.status==='active').length;
+  const atRisk    = DEMO_FOUNDERS.filter(f=>f.status==='at-risk').length;
+  const graduated = DEMO_FOUNDERS.filter(f=>f.status==='graduated').length;
+  const unread    = portalState.messages.filter(m=>m.unread).length;
+
+  return `
+    <div class="mrow">
+      <div class="met" style="color:var(--acc2)"><div class="met-label">Total Founders</div><div class="met-val" style="color:var(--acc2)">${DEMO_FOUNDERS.length}</div><div class="met-sub">in programme</div></div>
+      <div class="met" style="color:var(--grn)"><div class="met-label">Active</div><div class="met-val" style="color:var(--grn)">${active}</div><div class="met-sub">on track</div></div>
+      <div class="met" style="color:var(--red)"><div class="met-label">At Risk</div><div class="met-val" style="color:var(--red)">${atRisk}</div><div class="met-sub">need attention</div></div>
+      <div class="met" style="color:var(--gld)"><div class="met-label">Unread Messages</div><div class="met-val" style="color:var(--gld)">${unread}</div><div class="met-sub">need response</div></div>
+    </div>
+
+    <div class="grid-2" style="margin-bottom:10px">
+      <!-- At-risk founders -->
+      <div class="card">
+        <div class="card-title" style="color:var(--red)">⚠ Founders needing attention</div>
+        ${DEMO_FOUNDERS.filter(f=>f.status==='at-risk').map(f => `
+          <div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--br);cursor:pointer" onclick="openFounder('${f.id}')">
+            <div class="founder-avatar" style="width:32px;height:32px;font-size:11px">${f.avatar}</div>
+            <div style="flex:1">
+              <div style="font-size:12px;font-weight:600;color:var(--t)">${f.name}</div>
+              <div style="font-size:10px;color:var(--t3)">${f.business} · Stage ${f.stage}/9 · Last active: ${f.lastActive}</div>
+            </div>
+            <button class="btn btn-sm btn-warn" onclick="event.stopPropagation();quickMsg('${f.id}','${f.name}')">Message</button>
+          </div>`).join('')}
+      </div>
+
+      <!-- Today's appointments -->
+      <div class="card">
+        <div class="card-title">📅 Upcoming appointments</div>
+        ${DEMO_APPTS.slice(0,3).map(a => `
+          <div class="slot">
+            <div class="slot-time">${a.time}</div>
+            <div class="slot-info">
+              <div style="font-weight:600;color:var(--t);font-size:12px">${a.founderName}</div>
+              <div style="font-size:10px;color:var(--t3)">${a.type} · ${a.date} · ${a.duration}min</div>
+            </div>
+            <span class="slot-badge tag ${a.status==='confirmed'?'tag-grn':'tag-amb'}">${a.status}</span>
+          </div>`).join('')}
+        <button class="btn btn-a" style="width:100%;margin-top:8px" onclick="navigate('appointments')">View all →</button>
+      </div>
+    </div>
+
+    <!-- Recent messages -->
+    <div class="card">
+      <div class="flex-between" style="margin-bottom:10px">
+        <div class="card-title">Recent messages</div>
+        <button class="btn btn-sm" onclick="navigate('inbox')">View all →</button>
+      </div>
+      <div class="msg-list">
+        ${portalState.messages.slice(0,3).map(m => `
+          <div class="msg-item ${m.unread?'unread':''}" onclick="openMessage('${m.id}')">
+            <div class="msg-avatar">${m.avatar}</div>
+            <div class="msg-preview">
+              <div class="msg-name">${m.from} <span style="font-size:9px;color:var(--t3);font-weight:400">→ ${m.to}</span></div>
+              <div class="msg-text">${m.subject}</div>
+            </div>
+            <div class="msg-meta">${m.time}${m.unread?'<br><span style="color:var(--acc2);font-size:8px">NEW</span>':''}</div>
+          </div>`).join('')}
+      </div>
+    </div>
+
+    <!-- Programme overview -->
+    <div class="card">
+      <div class="card-title">Programme stage distribution</div>
+      <div style="display:grid;grid-template-columns:repeat(9,1fr);gap:5px;margin-top:10px">
+        ${Array.from({length:9},(_,i) => {
+          const cnt = DEMO_FOUNDERS.filter(f=>f.stage===i+1).length;
+          return `<div style="text-align:center">
+            <div style="font-family:var(--font-mono);font-size:18px;font-weight:700;color:${cnt>0?'var(--acc2)':'var(--t4)'}">${cnt}</div>
+            <div style="font-family:var(--font-mono);font-size:8px;color:var(--t3)">S${i+1}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// PANEL: ALL FOUNDERS
+// ═══════════════════════════════════════════════════════════
+function renderFounders() {
+  return `
+    <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+      <input type="search" id="founder-search" placeholder="Search founders…" style="flex:1;min-width:200px" oninput="filterFounders(this.value)">
+      <select id="founder-filter" onchange="filterFounders()" style="width:140px">
+        <option value="all">All statuses</option>
+        <option value="active">Active</option>
+        <option value="at-risk">At Risk</option>
+        <option value="graduated">Graduated</option>
+      </select>
+      <button class="btn btn-primary" onclick="openCompose()">+ Add Founder</button>
+    </div>
+    <div id="founders-grid" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">
+      ${DEMO_FOUNDERS.map(f => renderFounderCard(f)).join('')}
+    </div>`;
+}
+
+function renderFounderCard(f) {
+  const statusColor = f.status==='active'?'var(--grn)':f.status==='graduated'?'var(--acc2)':'var(--red)';
+  return `
+    <div class="founder-card" onclick="openFounder('${f.id}')">
+      <div class="flex-row" style="margin-bottom:10px">
+        <div class="founder-avatar">${f.avatar}</div>
+        <div style="flex:1">
+          <div class="founder-name">${f.name}</div>
+          <div class="founder-meta">${f.city} · ${f.business.slice(0,35)}…</div>
+        </div>
+        <span class="tag" style="background:${statusColor}20;color:${statusColor}">${f.status}</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px">
+        <div style="text-align:center"><div style="font-family:var(--font-mono);font-size:15px;font-weight:700;color:var(--acc2)">${f.stage}/9</div><div style="font-size:9px;color:var(--t3)">Stage</div></div>
+        <div style="text-align:center"><div style="font-family:var(--font-mono);font-size:15px;font-weight:700;color:var(--grn)">${f.bmcPct}%</div><div style="font-size:9px;color:var(--t3)">BMC</div></div>
+        <div style="text-align:center"><div style="font-family:var(--font-mono);font-size:15px;font-weight:700;color:var(--tel)">${f.assessScore}%</div><div style="font-size:9px;color:var(--t3)">Score</div></div>
+        <div style="text-align:center"><div style="font-family:var(--font-mono);font-size:15px;font-weight:700;color:${f.surveyResp>=30?'var(--grn)':'var(--amb)'}">${f.surveyResp}</div><div style="font-size:9px;color:var(--t3)">Survey</div></div>
+      </div>
+      <div class="prog-bar"><div class="prog-fill" style="width:${(f.stage/9)*100}%;background:linear-gradient(90deg,var(--acc),var(--grn))"></div></div>
+      <div style="display:flex;gap:6px;margin-top:10px">
+        <button class="btn btn-sm btn-a" onclick="event.stopPropagation();navigate('progress');setCurrentFounder('${f.id}')">Progress</button>
+        <button class="btn btn-sm" onclick="event.stopPropagation();quickMsg('${f.id}','${f.name}')">Message</button>
+        <button class="btn btn-sm" onclick="event.stopPropagation();bookAppt('${f.id}','${f.name}')">Book call</button>
+      </div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// PANEL: PROGRESS TRACKER
+// ═══════════════════════════════════════════════════════════
+function renderProgress() {
+  const f = portalState.currentFounder
+    ? DEMO_FOUNDERS.find(x=>x.id===portalState.currentFounder)
+    : null;
+
+  return `
+    <div class="flex-row" style="margin-bottom:12px">
+      <select id="prog-founder-sel" onchange="setCurrentFounder(this.value)" style="flex:1">
+        <option value="">Select a founder…</option>
+        ''}
+      </select>
+    </div>
+    ${f ? `
+    <div class="mrow">
+      <div class="met" style="color:var(--acc2)"><div class="met-label">Programme Stage</div><div class="met-val" style="color:var(--acc2)">${f.stage}/9</div><div class="met-sub">${['Assessments','BMC','Offer','Discovery','VSL','SPARC™','Outbound','MVP','Scale'][f.stage-1]}</div></div>
+      <div class="met" style="color:var(--grn)"><div class="met-label">BMC Completion</div><div class="met-val" style="color:var(--grn)">${f.bmcPct}%</div><div class="met-sub">${Math.round(f.bmcPct/100*16)}/16 steps done</div></div>
+      <div class="met" style="color:var(--tel)"><div class="met-label">Readiness Score</div><div class="met-val" style="color:var(--tel)">${f.assessScore}%</div><div class="met-sub">4 assessments avg</div></div>
+      <div class="met" style="color:${f.surveyResp>=30?'var(--grn)':'var(--amb)'}"><div class="met-label">Survey Responses</div><div class="met-val" style="color:${f.surveyResp>=30?'var(--grn)':'var(--amb)'}">${f.surveyResp}</div><div class="met-sub">${f.surveyResp>=100?'✓ Complete':f.surveyResp>=30?'Analysis unlocked':'Need 30 min'}</div></div>
+    </div>
+
+    <div class="card">
+      <div class="flex-between" style="margin-bottom:12px">
+        <div>
+          <div class="card-title">${f.name} — Detailed Progress</div>
+          <div style="font-size:11px;color:var(--t3)">${f.email} · ${f.city} · Last active ${f.lastActive}</div>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-sm btn-a" onclick="quickMsg('${f.id}','${f.name}')">✉ Message</button>
+          <button class="btn btn-sm btn-success" onclick="bookAppt('${f.id}','${f.name}')">📅 Book call</button>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+        ${[
+          {label:'Passion/Market',done:f.bmcPct>5,stage:'BMC 01'},
+          {label:'Niche',done:f.bmcPct>15,stage:'BMC 02'},
+          {label:'Problem',done:f.bmcPct>25,stage:'BMC 03'},
+          {label:'USP',done:f.bmcPct>35,stage:'BMC 04'},
+          {label:'MVP Offer',done:f.bmcPct>45,stage:'BMC 05'},
+          {label:'Mechanism',done:f.bmcPct>55,stage:'BMC 06'},
+          {label:'Message',done:f.bmcPct>65,stage:'BMC 07'},
+          {label:'Pricing',done:f.bmcPct>75,stage:'BMC 09'},
+          {label:'Past Failures',done:f.bmcPct>85,stage:'SPARC P'},
+          {label:'Cost of Inaction',done:f.bmcPct>90,stage:'SPARC A'},
+          {label:'Founder Story',done:f.bmcPct>95,stage:'VSL'},
+          {label:'Social Proof',done:f.bmcPct>=100,stage:'Close'},
+        ].map(s=>`
+          <div style="display:flex;align-items:center;gap:6px;padding:7px;background:var(--bg3);border-radius:6px">
+            <div style="width:16px;height:16px;border-radius:50%;background:${s.done?'var(--gnbg)':'var(--bg4)'};border:2px solid ${s.done?'var(--grn)':'var(--br)'};display:flex;align-items:center;justify-content:center;flex-shrink:0">
+              ${s.done?'<span style="color:var(--grn);font-size:9px">✓</span>':''}
+            </div>
+            <div><div style="font-size:10px;font-weight:600;color:${s.done?'var(--t)':'var(--t3)'}">${s.label}</div><div style="font-family:var(--font-mono);font-size:8px;color:var(--t4)">${s.stage}</div></div>
+          </div>`).join('')}
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">Mentor notes</div>
+        <textarea id="mentor-notes-${f.id}" placeholder="Add private notes about this founder's progress, strengths, blockers…" style="min-height:100px">${localStorage.getItem('notes_'+f.id)||''}</textarea>
+        <button class="btn btn-sm btn-a" style="margin-top:6px" onclick="saveNotes('${f.id}')">Save notes</button>
+      </div>
+      <div class="card">
+        <div class="card-title">Quick actions</div>
+        <div style="display:flex;flex-direction:column;gap:6px;margin-top:4px">
+          <button class="btn btn-a" onclick="quickMsg('${f.id}','${f.name}')">✉ Send message</button>
+          <button class="btn" onclick="bookAppt('${f.id}','${f.name}')">📅 Schedule appointment</button>
+          <button class="btn btn-success" onclick="sendEmailToFounder('${f.email}','${f.name}')">📧 Send email</button>
+          <button class="btn btn-warn">⚠ Flag as at-risk</button>
+          <button class="btn">📋 Assign to cohort</button>
+        </div>
+      </div>
+    </div>` : `
+    <div class="card" style="text-align:center;padding:40px">
+      <div style="font-size:28px;margin-bottom:8px">📈</div>
+      <div class="card-title">Select a founder to view their progress</div>
+      <div class="card-sub">Use the dropdown above or click a founder card from the Founders panel</div>
+    </div>`}`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// PANEL: INBOX
+// ═══════════════════════════════════════════════════════════
+let activeMessage = null;
+
+function renderInbox() {
+  return `
+    <div class="grid-2" style="gap:12px">
+      <!-- Message list -->
+      <div>
+        <div class="flex-between" style="margin-bottom:8px">
+          <div class="sl" style="margin:0">${portalState.messages.length} messages</div>
+          <button class="btn btn-primary btn-sm" onclick="openCompose()">+ Compose</button>
+        </div>
+        <div class="msg-list">
+          ${portalState.messages.map(m => `
+            <div class="msg-item ${m.unread?'unread':''} ${activeMessage===m.id?'active':''}"
+              onclick="openMessage('${m.id}')" style="${activeMessage===m.id?'border-color:var(--acc);background:var(--accbg)':''}">
+              <div class="msg-avatar">${m.avatar}</div>
+              <div class="msg-preview">
+                <div class="msg-name">${m.from}</div>
+                <div class="msg-text" style="font-weight:${m.unread?'600':'400'}">${m.subject}</div>
+              </div>
+              <div class="msg-meta">${m.time}${m.unread?'<br><span style="color:var(--acc2);font-size:8px">●</span>':''}</div>
+            </div>`).join('')}
+        </div>
+      </div>
+
+      <!-- Message view -->
+      <div id="msg-view">
+        ${activeMessage ? renderMessageDetail(activeMessage) : `
+          <div class="card" style="text-align:center;padding:40px">
+            <div style="font-size:28px;margin-bottom:8px">✉</div>
+            <div class="card-title">Select a message</div>
+            <div class="card-sub">Click a message to read it</div>
+          </div>`}
+      </div>
+    </div>`;
+}
+
+function renderMessageDetail(msgId) {
+  const m = portalState.messages.find(x=>x.id===msgId);
+  if (!m) return '';
+  return `
+    <div class="card">
+      <div class="flex-between" style="margin-bottom:12px">
+        <div>
+          <div style="font-size:14px;font-weight:700;color:var(--t)">${m.subject}</div>
+          <div style="font-size:11px;color:var(--t3);margin-top:2px">From: ${m.from} · ${m.time}</div>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-sm btn-a" onclick="replyToMessage('${m.id}')">↩ Reply</button>
+          <button class="btn btn-sm" onclick="bookApptFromMsg('${m.fromId}','${m.from}')">📅 Book call</button>
+        </div>
+      </div>
+      <div style="font-size:12px;color:var(--t2);line-height:1.7;padding:12px;background:var(--bg3);border-radius:7px;margin-bottom:12px">${m.body}</div>
+      <div>
+        <div class="input-label">Reply</div>
+        <textarea id="reply-body" placeholder="Type your reply…" style="min-height:80px"></textarea>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button class="btn btn-primary" onclick="sendReply('${m.id}','${m.from}')">Send reply</button>
+          <button class="btn btn-sm" onclick="sendEmailToFounder('${m.from}','${m.from}')">📧 Send via email</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// PANEL: APPOINTMENTS
+// ═══════════════════════════════════════════════════════════
+function renderAppointments() {
+  const pending   = portalState.appointments.filter(a=>a.status==='pending');
+  const confirmed = portalState.appointments.filter(a=>a.status==='confirmed');
+
+  return `
+    <div class="mrow" style="grid-template-columns:repeat(3,1fr)">
+      <div class="met" style="color:var(--grn)"><div class="met-label">Confirmed</div><div class="met-val" style="color:var(--grn)">${confirmed.length}</div><div class="met-sub">upcoming</div></div>
+      <div class="met" style="color:var(--amb)"><div class="met-label">Pending</div><div class="met-val" style="color:var(--amb)">${pending.length}</div><div class="met-sub">awaiting confirmation</div></div>
+      <div class="met" style="color:var(--tel)"><div class="met-label">Total</div><div class="met-val" style="color:var(--tel)">${portalState.appointments.length}</div><div class="met-sub">all time</div></div>
+    </div>
+
+    <!-- Book new appointment -->
+    <div class="card">
+      <div class="card-title">Schedule new appointment</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px">
+        <div>
+          <div class="input-label">Founder</div>
+          <select id="appt-founder">
+            <option value="">Select founder…</option>
+            ''}
+          </select>
+        </div>
+        <div>
+          <div class="input-label">Session type</div>
+          <select id="appt-type">
+            ${['Progress Review','Script Review','Discovery Call Practice','SPARC™ Roleplay','Pricing Workshop','Survey Analysis','Strategy Session','Q&A Session'].map(t=>`<option>${t}</option>`).join('')}
+          </select>
+        </div>
+        <div>
+          <div class="input-label">Duration</div>
+          <select id="appt-dur">
+            <option value="30">30 min</option>
+            <option value="45">45 min</option>
+            <option value="60" selected>60 min</option>
+            <option value="90">90 min</option>
+          </select>
+        </div>
+        <div>
+          <div class="input-label">Date</div>
+          <input type="date" id="appt-date" value="${new Date().toISOString().slice(0,10)}">
+        </div>
+        <div>
+          <div class="input-label">Time</div>
+          <input type="time" id="appt-time" value="10:00">
+        </div>
+        <div>
+          <div class="input-label">Notes</div>
+          <input type="text" id="appt-notes" placeholder="What to cover…">
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn btn-primary" onclick="bookAppointment()">Book appointment</button>
+        <button class="btn btn-sm" onclick="sendCalendarInvite()">📅 Send calendar invite</button>
+        <div id="appt-result" style="font-size:11px;color:var(--grn)"></div>
+      </div>
+    </div>
+
+    <!-- Appointment list -->
+    <div class="card">
+      <div class="card-title">All appointments</div>
+      <div style="overflow-x:auto;margin-top:8px">
+        <table class="data-table">
+          <thead><tr><th>Founder</th><th>Type</th><th>Date & Time</th><th>Duration</th><th>Status</th><th>Notes</th><th>Actions</th></tr></thead>
+          <tbody>
+            ${portalState.appointments.map(a => `
+              <tr>
+                <td style="font-weight:600;color:var(--t)">${a.founderName}</td>
+                <td>${a.type}</td>
+                <td style="font-family:var(--font-mono);font-size:10px">${a.date} ${a.time}</td>
+                <td style="font-family:var(--font-mono)">${a.duration}m</td>
+                <td><span class="tag ${a.status==='confirmed'?'tag-grn':'tag-amb'}">${a.status}</span></td>
+                <td style="color:var(--t3);font-size:10px">${a.notes||'—'}</td>
+                <td>
+                  <div style="display:flex;gap:4px">
+                    ${a.status==='pending'?`<button class="btn btn-sm btn-success" onclick="confirmAppt('${a.id}')">Confirm</button>`:''}
+                    <button class="btn btn-sm" onclick="cancelAppt('${a.id}')">Cancel</button>
+                  </div>
+                </td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// PANEL: CALENDAR
+// ═══════════════════════════════════════════════════════════
+function renderCalendar() {
+  const year  = portalState.calYear;
+  const month = portalState.calMonth;
+  const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const dayNames   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const firstDay   = new Date(year, month, 1).getDay();
+  const daysInMonth= new Date(year, month+1, 0).getDate();
+  const today      = new Date();
+
+  // Map appointments to dates
+  const apptMap = {};
+  portalState.appointments.forEach(a => {
+    const key = a.date;
+    if (!apptMap[key]) apptMap[key] = [];
+    apptMap[key].push(a);
+  });
+
+  let cells = [];
+  for (let i = 0; i < firstDay; i++) cells.push('<div></div>');
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isToday = d===today.getDate()&&month===today.getMonth()&&year===today.getFullYear();
+    const appts   = apptMap[dateStr] || [];
+    cells.push(`
+      <div class="cal-day ${isToday?'today':''} ${appts.length?'has-event':''}" onclick="openCalDay('${dateStr}')">
+        <div class="cal-day-num">${d}</div>
+        ${appts.slice(0,2).map(a=>`<div style="font-size:8px;padding:1px 3px;border-radius:2px;background:${a.status==='confirmed'?'var(--gnbg)':'var(--ambg)'};color:${a.status==='confirmed'?'var(--grn)':'var(--amb)'};margin-top:1px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${a.founderName.split(' ')[0]}</div>`).join('')}
+        ${appts.length>2?`<div style="font-size:8px;color:var(--t3)">+${appts.length-2}</div>`:''}
+      </div>`);
+  }
+
+  return `
+    <div class="card">
+      <div class="flex-between" style="margin-bottom:14px">
+        <button class="btn btn-sm" onclick="calNav(-1)">← Prev</button>
+        <div style="font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--t)">${monthNames[month]} ${year}</div>
+        <button class="btn btn-sm" onclick="calNav(1)">Next →</button>
+      </div>
+      <div class="cal-header">
+        ${dayNames.map(d=>`<div class="cal-header-day">${d}</div>`).join('')}
+      </div>
+      <div class="cal-grid">${cells.join('')}</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">This month's appointments</div>
+      ${portalState.appointments.filter(a=>a.date.startsWith(`${year}-${String(month+1).padStart(2,'0')}`)).map(a=>`
+        <div class="slot">
+          <div class="slot-time">${a.date.slice(8)} ${a.time}</div>
+          <div class="slot-info">
+            <div style="font-weight:600;font-size:12px;color:var(--t)">${a.founderName}</div>
+            <div style="font-size:10px;color:var(--t3)">${a.type} · ${a.duration}min · ${a.notes||''}</div>
+          </div>
+          <span class="slot-badge tag ${a.status==='confirmed'?'tag-grn':'tag-amb'}">${a.status}</span>
+        </div>`).join('') || '<div style="color:var(--t3);font-size:12px;padding:10px">No appointments this month</div>'}
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// PANEL: EMAIL COMPOSE
+// ═══════════════════════════════════════════════════════════
+const EMAIL_PROVIDERS = [
+  { id:'gmail',    name:'Gmail',       icon:'G',  color:'#ea4335', url:'https://mail.google.com/mail/?view=cm&to={to}&su={subject}&body={body}' },
+  { id:'outlook',  name:'Outlook',     icon:'O',  color:'#0078d4', url:'https://outlook.live.com/owa/?path=/mail/action/compose&to={to}&subject={subject}&body={body}' },
+  { id:'yahoo',    name:'Yahoo Mail',  icon:'Y',  color:'#6001d2', url:'https://compose.mail.yahoo.com/?to={to}&subject={subject}&body={body}' },
+  { id:'proton',   name:'ProtonMail',  icon:'P',  color:'#6d4aff', url:'https://mail.proton.me/u/0/compose?to={to}&subject={subject}&body={body}' },
+  { id:'zoho',     name:'Zoho Mail',   icon:'Z',  color:'#c8202f', url:'https://mail.zoho.in/zm/#compose' },
+  { id:'mailto',   name:'Default App', icon:'✉',  color:'#555',    url:'mailto:{to}?subject={subject}&body={body}' },
+];
+
+function renderCompose() {
+  return `
+    <div class="card">
+      <div class="card-title">Send Email</div>
+      <div class="card-sub">Choose your email provider — the email opens pre-filled in your preferred client</div>
+      <div class="email-providers" style="margin-bottom:14px">
+        ''}
+      </div>
+      <div class="input-group">
+        <div class="input-label">To</div>
+        <input type="email" id="email-to" placeholder="founder@email.com or multiple separated by commas">
+      </div>
+      <div class="grid-2">
+        <div class="input-group">
+          <div class="input-label">Subject</div>
+          <input type="text" id="email-subject" placeholder="e.g. Programme Update — Week 4">
+        </div>
+        <div class="input-group">
+          <div class="input-label">Quick templates</div>
+          <select id="email-template" onchange="loadEmailTemplate(this.value)">
+            <option value="">Select template…</option>
+            <option value="welcome">Welcome to the programme</option>
+            <option value="progress">Progress check-in</option>
+            <option value="survey">Survey reminder (30 responses needed)</option>
+            <option value="appt">Appointment confirmation</option>
+            <option value="bmc">BMC completion nudge</option>
+            <option value="sparc">SPARC™ script review invite</option>
+            <option value="congrats">Stage completion — congratulations</option>
+          </select>
+        </div>
+      </div>
+      <div class="input-group">
+        <div class="input-label">Message body</div>
+        <textarea id="email-body" style="min-height:180px" placeholder="Type your message…"></textarea>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn btn-primary" onclick="sendEmail()">Send via ${EMAIL_PROVIDERS.find(p=>p.id===portalState.emailProvider)?.name||'email'}</button>
+        <button class="btn btn-a" onclick="aiDraftEmail()">✦ AI draft this email</button>
+        <div id="email-result" style="font-size:11px;color:var(--grn)"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Email integration guide</div>
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:8px">
+        ''}
+      </div>
+      <div style="margin-top:10px;background:var(--gnbg);border-radius:6px;padding:10px;font-size:11px;color:var(--grn)">
+        💡 Clicking "Send" opens your chosen email provider pre-filled with the recipient, subject, and body. No SMTP setup needed — uses your existing email account.
+      </div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// PANEL: REPORTS
+// ═══════════════════════════════════════════════════════════
+function renderReports() {
+  const avgStage    = (DEMO_FOUNDERS.reduce((a,f)=>a+f.stage,0)/DEMO_FOUNDERS.length).toFixed(1);
+  const avgBMC      = Math.round(DEMO_FOUNDERS.reduce((a,f)=>a+f.bmcPct,0)/DEMO_FOUNDERS.length);
+  const avgSurvey   = Math.round(DEMO_FOUNDERS.reduce((a,f)=>a+f.surveyResp,0)/DEMO_FOUNDERS.length);
+  const validated   = DEMO_FOUNDERS.filter(f=>f.surveyResp>=30).length;
+
+  return `
+    <div class="mrow">
+      <div class="met" style="color:var(--acc2)"><div class="met-label">Avg Stage</div><div class="met-val" style="color:var(--acc2)">${avgStage}/9</div><div class="met-sub">programme average</div></div>
+      <div class="met" style="color:var(--grn)"><div class="met-label">Avg BMC %</div><div class="met-val" style="color:var(--grn)">${avgBMC}%</div><div class="met-sub">completion rate</div></div>
+      <div class="met" style="color:var(--tel)"><div class="met-label">Avg Survey</div><div class="met-val" style="color:var(--tel)">${avgSurvey}</div><div class="met-sub">responses avg</div></div>
+      <div class="met" style="color:var(--gld)"><div class="met-label">Validated MVPs</div><div class="met-val" style="color:var(--gld)">${validated}/${DEMO_FOUNDERS.length}</div><div class="met-sub">30+ responses</div></div>
+    </div>
+
+    <!-- Tab row for report types -->
+    <div class="tab-row" style="margin-bottom:12px">
+      <button class="tab-btn active" id="rep-tab-founders" onclick="switchReportTab('founders')">Founder Progress</button>
+      <button class="tab-btn" id="rep-tab-trainers" onclick="switchReportTab('trainers')">Trainer Performance</button>
+      <button class="tab-btn" id="rep-tab-cohorts" onclick="switchReportTab('cohorts')">Cohort Summary</button>
+    </div>
+
+    <!-- Founder report -->
+    <div id="rep-founders">
+    <div class="card">
+      <div class="flex-between" style="margin-bottom:12px">
+        <div class="card-title">Founder progress report</div>
+        <button class="btn btn-a" onclick="exportReport()">⬇ Export PDF</button>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table">
+          <thead><tr><th>Founder</th><th>Business</th><th>City</th><th>Stage</th><th>BMC %</th><th>Score</th><th>Survey</th><th>Status</th></tr></thead>
+          <tbody>
+            ''}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    </div>
+
+    <!-- Trainer performance report -->
+    <div id="rep-trainers" style="display:none">
+    <div class="card">
+      <div class="flex-between" style="margin-bottom:12px">
+        <div class="card-title">Trainer & Mentor performance report</div>
+        <button class="btn btn-a" onclick="exportTrainerReport()">⬇ Export PDF</button>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table">
+          <thead><tr><th>Name</th><th>Role</th><th>Specialty</th><th>Cohorts</th><th>Founders</th><th>Sessions</th><th>Rating</th><th>Status</th></tr></thead>
+          <tbody id="trainer-report-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+    </div>
+
+    <!-- Cohort summary report -->
+    <div id="rep-cohorts" style="display:none">
+    <div class="card">
+      <div class="flex-between" style="margin-bottom:12px">
+        <div class="card-title">Cohort summary report</div>
+        <button class="btn btn-a" onclick="exportCohortReport()">⬇ Export PDF</button>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table">
+          <thead><tr><th>Cohort</th><th>Status</th><th>Founders</th><th>Capacity</th><th>Trainers</th><th>Avg Stage</th><th>Dates</th></tr></thead>
+          <tbody id="cohort-report-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// PANEL: SETTINGS
+// ═══════════════════════════════════════════════════════════
+function renderSettings() {
+  return `
+    <div class="card">
+      <div class="card-title">Portal settings</div>
+      <div class="grid-2">
+        <div class="input-group"><div class="input-label">Portal name</div><input type="text" value="LaunchOS™ Admin Portal"></div>
+        <div class="input-group"><div class="input-label">Your name</div><input type="text" value="${portalState.role==='admin'?'Admin':'Mentor'}"></div>
+        <div class="input-group"><div class="input-label">Email</div><input type="email" placeholder="your@email.com"></div>
+        <div class="input-group"><div class="input-label">Default email provider</div>
+          <select onchange="setEmailProvider(this.value)">
+            ''}
+          </select>
+        </div>
+      </div>
+      <button class="btn btn-primary">Save settings</button>
+    </div>
+    <div class="card">
+      <div class="card-title">Role switching</div>
+      <div class="card-sub">Switch between Admin and Mentor views to see different permission levels</div>
+      <div style="display:flex;gap:8px">
+        <button class="btn ${portalState.role==='admin'?'btn-primary':''}" onclick="setRole('admin')">⚡ Admin view</button>
+        <button class="btn ${portalState.role==='mentor'?'btn-primary':''}" onclick="setRole('mentor')">🎓 Mentor view</button>
+      </div>
+    </div>`;
+}
+
+function renderCohorts() {
+  return `
+    <!-- Cohort summary metrics -->
+    <div class="mrow" style="grid-template-columns:repeat(4,1fr)">
+      <div class="met" style="color:var(--grn)"><div class="met-label">Active Cohorts</div><div class="met-val" style="color:var(--grn)">${DEMO_COHORTS.filter(c=>c.status==='active').length}</div><div class="met-sub">running now</div></div>
+      <div class="met" style="color:var(--amb)"><div class="met-label">Planning</div><div class="met-val" style="color:var(--amb)">${DEMO_COHORTS.filter(c=>c.status==='planning').length}</div><div class="met-sub">upcoming</div></div>
+      <div class="met" style="color:var(--tel)"><div class="met-label">Total Founders</div><div class="met-val" style="color:var(--tel)">${DEMO_FOUNDERS.length}</div><div class="met-sub">across all cohorts</div></div>
+      <div class="met" style="color:var(--acc2)"><div class="met-label">Trainers Assigned</div><div class="met-val" style="color:var(--acc2)">${DEMO_TRAINERS.filter(t=>t.cohorts.length>0).length}</div><div class="met-sub">active assignments</div></div>
+    </div>
+
+    <!-- Cohort cards -->
+    ${DEMO_COHORTS.map(c => {
+      const cohortFounders  = DEMO_FOUNDERS.filter(f => c.founders.includes(f.id));
+      const cohortTrainers  = DEMO_TRAINERS.filter(t => c.trainers.includes(t.id));
+      const avgProgress     = cohortFounders.length ? Math.round(cohortFounders.reduce((a,f)=>a+f.stage,0)/cohortFounders.length/9*100) : 0;
+      const statusColor     = c.status==='active' ? 'var(--grn)' : c.status==='planning' ? 'var(--amb)' : 'var(--tel)';
+      return `
+        <div class="card" style="border-color:${statusColor}30;margin-bottom:10px">
+          <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:12px">
+            <div style="flex:1">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">
+                <div class="card-title" style="margin:0">${c.name}</div>
+                <span class="tag" style="background:${statusColor}20;color:${statusColor}">${c.status}</span>
+              </div>
+              <div style="font-size:11px;color:var(--t3)">${c.description} · ${c.startDate} → ${c.endDate}</div>
+            </div>
+            <div style="text-align:right;flex-shrink:0">
+              <div style="font-family:var(--font-mono);font-size:11px;color:var(--t2)">${c.stage}</div>
+              <div style="font-size:10px;color:var(--t3)">${cohortFounders.length}/${c.capacity} founders</div>
+            </div>
+          </div>
+
+          <!-- Progress bar -->
+          <div style="margin-bottom:12px">
+            <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--t3);margin-bottom:4px">
+              <span>Avg cohort progress</span><span>${avgProgress}%</span>
+            </div>
+            <div class="prog-bar"><div class="prog-fill" style="width:${avgProgress}%;background:${statusColor}"></div></div>
+          </div>
+
+          <div class="grid-2" style="gap:10px">
+            <!-- Founders in cohort -->
+            <div>
+              <div class="sl">Founders (${cohortFounders.length})</div>
+              ${cohortFounders.length ? cohortFounders.map(f => `
+                <div style="display:flex;align-items:center;gap:7px;padding:5px 0;border-bottom:1px solid var(--br)">
+                  <div style="width:24px;height:24px;border-radius:50%;background:var(--accbg);color:var(--acc2);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0">${f.avatar}</div>
+                  <div style="flex:1;font-size:11px;font-weight:500;color:var(--t)">${f.name}</div>
+                  <span class="tag tag-acc" style="font-size:8px">S${f.stage}</span>
+                </div>`).join('') : '<div style="font-size:11px;color:var(--t3);padding:8px 0">No founders assigned</div>'}
+              <button class="btn btn-sm btn-a" style="margin-top:7px;width:100%" onclick="openAddFounderToCohort('${c.id}')">+ Add founder</button>
+            </div>
+
+            <!-- Trainers in cohort -->
+            <div>
+              <div class="sl">Trainers & Mentors (${cohortTrainers.length})</div>
+              ${cohortTrainers.length ? cohortTrainers.map(t => `
+                <div style="display:flex;align-items:center;gap:7px;padding:5px 0;border-bottom:1px solid var(--br)">
+                  <div style="width:24px;height:24px;border-radius:50%;background:var(--tebg);color:var(--tel);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0">${t.avatar}</div>
+                  <div style="flex:1">
+                    <div style="font-size:11px;font-weight:500;color:var(--t)">${t.name}</div>
+                    <div style="font-size:9px;color:var(--t3)">${t.specialty}</div>
+                  </div>
+                  <span class="tag" style="background:${t.role==='mentor'?'var(--pkbg)':'var(--tebg)'};color:${t.role==='mentor'?'var(--pnk)':'var(--tel)'};font-size:8px">${t.role}</span>
+                </div>`).join('') : '<div style="font-size:11px;color:var(--t3);padding:8px 0">No trainers assigned</div>'}
+              <button class="btn btn-sm" style="margin-top:7px;width:100%" onclick="openAddTrainerToCohort('${c.id}')">+ Assign trainer</button>
+            </div>
+          </div>
+        </div>`;
+    }).join('')}
+
+    <!-- Create new cohort form -->
+    <div class="card" style="border-style:dashed">
+      <div class="card-title">+ Create new cohort</div>
+      <div class="grid-2" style="margin-top:10px">
+        <div class="input-group"><div class="input-label">Cohort name</div><input type="text" id="new-cohort-name" placeholder="e.g. Cohort 4 — December 2026"></div>
+        <div class="input-group"><div class="input-label">Description</div><input type="text" id="new-cohort-desc" placeholder="Target founder type…"></div>
+        <div class="input-group"><div class="input-label">Start date</div><input type="date" id="new-cohort-start"></div>
+        <div class="input-group"><div class="input-label">Capacity (max founders)</div><input type="number" id="new-cohort-cap" value="12" min="1" max="50"></div>
+      </div>
+      <button class="btn btn-primary" onclick="createCohort()">Create cohort</button>
+      <span id="cohort-create-result" style="font-size:11px;color:var(--grn);margin-left:10px"></span>
+    </div>
+
+    <!-- Add founder to cohort modal -->
+    <div id="add-founder-modal" style="display:none;margin-top:10px">
+      <div class="card" style="border-color:var(--acc)">
+        <div class="card-title">Assign founder to cohort</div>
+        <div class="grid-2" style="margin-top:8px">
+          <div class="input-group">
+            <div class="input-label">Select founder</div>
+            <select id="modal-founder-sel">
+              <option value="">Select…</option>
+              ''}
+            </select>
+          </div>
+          <div class="input-group">
+            <div class="input-label">Assign to cohort</div>
+            <select id="modal-cohort-sel">
+              ''}
+            </select>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-primary" onclick="assignFounderToCohort()">Assign</button>
+          <button class="btn btn-sm" onclick="closeModal2()">Cancel</button>
+          <span id="assign-founder-result" style="font-size:11px;color:var(--grn);margin-left:6px"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add trainer to cohort modal -->
+    <div id="add-trainer-modal" style="display:none;margin-top:10px">
+      <div class="card" style="border-color:var(--tel)">
+        <div class="card-title">Assign trainer/mentor to cohort</div>
+        <div class="grid-2" style="margin-top:8px">
+          <div class="input-group">
+            <div class="input-label">Select trainer / mentor</div>
+            <select id="modal-trainer-sel">
+              <option value="">Select…</option>
+              ''}
+            </select>
+          </div>
+          <div class="input-group">
+            <div class="input-label">Assign to cohort</div>
+            <select id="modal-trainer-cohort-sel">
+              ''}
+            </select>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-primary" onclick="assignTrainerToCohort()">Assign</button>
+          <button class="btn btn-sm" onclick="closeModal2()">Cancel</button>
+          <span id="assign-trainer-result" style="font-size:11px;color:var(--grn);margin-left:6px"></span>
+        </div>
+      </div>
+    </div>`;
+}
+
+
+// ═══════════════════════════════════════════════════════════
+// PANEL: TRAINERS & MENTORS
+// ═══════════════════════════════════════════════════════════
+function renderTrainers() {
+  const active     = DEMO_TRAINERS.filter(t=>t.status==='active').length;
+  const mentors    = DEMO_TRAINERS.filter(t=>t.role==='mentor').length;
+  const trainers   = DEMO_TRAINERS.filter(t=>t.role==='trainer').length;
+  const avgRating  = +(DEMO_TRAINERS.filter(t=>t.rating).reduce((a,t)=>a+t.rating,0) / DEMO_TRAINERS.filter(t=>t.rating).length).toFixed(1);
+  const totalSessions = DEMO_TRAINERS.reduce((a,t)=>a+t.sessions,0);
+
+  return `
+    <div class="mrow">
+      <div class="met" style="color:var(--tel)"><div class="met-label">Total Team</div><div class="met-val" style="color:var(--tel)">${DEMO_TRAINERS.length}</div><div class="met-sub">${active} active</div></div>
+      <div class="met" style="color:var(--pnk)"><div class="met-label">Mentors</div><div class="met-val" style="color:var(--pnk)">${mentors}</div><div class="met-sub">1:1 coaching</div></div>
+      <div class="met" style="color:var(--grn)"><div class="met-label">Trainers</div><div class="met-val" style="color:var(--grn)">${trainers}</div><div class="met-sub">group delivery</div></div>
+      <div class="met" style="color:var(--gld)"><div class="met-label">Avg Rating</div><div class="met-val" style="color:var(--gld)">${avgRating}★</div><div class="met-sub">${totalSessions} sessions total</div></div>
+    </div>
+
+    <!-- Trainer cards -->
+    <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:12px">
+      ${DEMO_TRAINERS.map(t => {
+        const cohortNames   = DEMO_COHORTS.filter(c=>t.cohorts.includes(c.id)).map(c=>c.name.split(' — ')[0]);
+        const founderNames  = DEMO_FOUNDERS.filter(f=>t.founders.includes(f.id)).map(f=>f.name.split(' ')[0]);
+        const statusColor   = t.status==='active' ? 'var(--grn)' : t.status==='onboarding' ? 'var(--amb)' : 'var(--t3)';
+        const roleColor     = t.role==='mentor' ? 'var(--pnk)' : 'var(--tel)';
+        const roleBg        = t.role==='mentor' ? 'var(--pkbg)' : 'var(--tebg)';
+        return `
+          <div class="card" style="border-color:${statusColor}30">
+            <div style="display:flex;gap:12px;margin-bottom:10px">
+              <div style="width:48px;height:48px;border-radius:50%;background:${roleBg};color:${roleColor};display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;flex-shrink:0">${t.avatar}</div>
+              <div style="flex:1">
+                <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:3px">
+                  <div style="font-family:var(--font-display);font-size:13px;font-weight:700;color:var(--t)">${t.name}</div>
+                  <span class="tag" style="background:${roleBg};color:${roleColor};font-size:8px">${t.role}</span>
+                  <span class="tag" style="background:${statusColor}20;color:${statusColor};font-size:8px">${t.status}</span>
+                </div>
+                <div style="font-size:11px;color:var(--acc2);font-weight:500">${t.specialty}</div>
+                <div style="font-size:10px;color:var(--t3);margin-top:1px">${t.city} · Joined ${t.joinDate}</div>
+              </div>
+              <div style="text-align:right;flex-shrink:0">
+                ${t.rating ? `<div style="font-family:var(--font-mono);font-size:16px;font-weight:700;color:var(--gld)">${t.rating}★</div>` : '<div style="font-size:10px;color:var(--t3)">No rating</div>'}
+                <div style="font-size:10px;color:var(--t3)">${t.sessions} sessions</div>
+              </div>
+            </div>
+
+            <div style="font-size:11px;color:var(--t2);line-height:1.6;margin-bottom:10px;padding:9px;background:var(--bg3);border-radius:6px">${t.bio}</div>
+
+            <div class="grid-2" style="gap:8px;margin-bottom:10px">
+              <div>
+                <div class="sl">Contact</div>
+                <div style="font-size:10px;color:var(--t2);margin-bottom:2px">📧 ${t.email}</div>
+                <div style="font-size:10px;color:var(--t2)">📞 ${t.phone}</div>
+              </div>
+              <div>
+                <div class="sl">Performance</div>
+                <div style="font-size:10px;color:var(--t2)">${t.sessions} sessions delivered</div>
+                <div style="font-size:10px;color:var(--t2)">${t.founders.length} founders assigned</div>
+              </div>
+            </div>
+
+            <div style="margin-bottom:10px">
+              <div class="sl">Cohorts</div>
+              ${cohortNames.length ? cohortNames.map(n=>`<span class="tag tag-grn" style="font-size:9px">${n}</span>`).join('') : '<span style="font-size:10px;color:var(--t3)">No cohorts yet</span>'}
+            </div>
+
+            <div style="margin-bottom:12px">
+              <div class="sl">Assigned founders (${founderNames.length})</div>
+              ${founderNames.length ? founderNames.map(n=>`<span class="tag tag-acc" style="font-size:9px">${n}</span>`).join('') : '<span style="font-size:10px;color:var(--t3)">No founders yet</span>'}
+            </div>
+
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <button class="btn btn-sm btn-a" onclick="openTrainerProfile('${t.id}')">View profile</button>
+              <button class="btn btn-sm" onclick="msgTrainer('${t.id}','${t.name}')">💬 Message</button>
+              <button class="btn btn-sm" onclick="emailTrainer('${t.email}','${t.name}')">📧 Email</button>
+              <button class="btn btn-sm" onclick="openAddTrainerToCohort('${t.id}')">+ Assign cohort</button>
+              <button class="btn btn-sm" onclick="openAssignFounderToTrainer('${t.id}','${t.name}')">+ Assign founder</button>
+            </div>
+          </div>`;
+      }).join('')}
+    </div>
+
+    <!-- Add new trainer form -->
+    <div class="card" style="border-style:dashed">
+      <div class="card-title">+ Add new trainer / mentor</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px">
+        <div class="input-group"><div class="input-label">Full name</div><input type="text" id="new-trainer-name" placeholder="e.g. Dr. Vikram Shah"></div>
+        <div class="input-group"><div class="input-label">Email</div><input type="email" id="new-trainer-email" placeholder="trainer@email.com"></div>
+        <div class="input-group"><div class="input-label">Phone</div><input type="text" id="new-trainer-phone" placeholder="+91 98765 00000"></div>
+        <div class="input-group"><div class="input-label">Role</div>
+          <select id="new-trainer-role"><option value="trainer">Trainer (Group delivery)</option><option value="mentor">Mentor (1:1 coaching)</option></select>
+        </div>
+        <div class="input-group"><div class="input-label">Specialty</div><input type="text" id="new-trainer-spec" placeholder="e.g. Sales & Marketing"></div>
+        <div class="input-group"><div class="input-label">City</div><input type="text" id="new-trainer-city" placeholder="e.g. Mumbai"></div>
+        <div class="input-group" style="grid-column:span 3"><div class="input-label">Bio / expertise summary</div><textarea id="new-trainer-bio" placeholder="Brief bio describing their background and expertise…" style="min-height:60px"></textarea></div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn btn-primary" onclick="addTrainer()">Add to team</button>
+        <button class="btn btn-sm" onclick="sendTrainerWelcome()">+ Add & send welcome email</button>
+        <span id="trainer-add-result" style="font-size:11px;color:var(--grn);margin-left:6px"></span>
+      </div>
+    </div>
+
+    <!-- Assign founder to trainer modal -->
+    <div id="assign-founder-trainer-modal" style="display:none;margin-top:10px">
+      <div class="card" style="border-color:var(--tel)">
+        <div class="card-title">Assign founder to trainer</div>
+        <div class="grid-2" style="margin-top:8px">
+          <div class="input-group"><div class="input-label">Trainer</div><select id="aff-trainer-sel">''}</select></div>
+          <div class="input-group"><div class="input-label">Founder</div><select id="aff-founder-sel"><option value="">Select founder…</option>''}</select></div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-primary" onclick="assignFounderToTrainer()">Assign</button>
+          <button class="btn btn-sm" onclick="closeModal2()">Cancel</button>
+          <span id="aff-result" style="font-size:11px;color:var(--grn);margin-left:6px"></span>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// PANEL: TRAINER COMMUNICATION CHANNEL
+// ═══════════════════════════════════════════════════════════
+let activeTrainerMsg = null;
+
+function renderTrainerComm() {
+  const trainerMsgs = portalState.messages.filter(m => m.type === 'trainer' || DEMO_TRAINERS.find(t=>t.id===m.fromId));
+  const unread = trainerMsgs.filter(m=>m.unread).length;
+
+  return `
+    <div class="mrow" style="grid-template-columns:repeat(3,1fr)">
+      <div class="met" style="color:var(--pnk)"><div class="met-label">Unread</div><div class="met-val" style="color:var(--pnk)">${unread}</div><div class="met-sub">from trainers</div></div>
+      <div class="met" style="color:var(--tel)"><div class="met-label">Team Messages</div><div class="met-val" style="color:var(--tel)">${trainerMsgs.length}</div><div class="met-sub">total thread</div></div>
+      <div class="met" style="color:var(--grn)"><div class="met-label">Active Trainers</div><div class="met-val" style="color:var(--grn)">${DEMO_TRAINERS.filter(t=>t.status==='active').length}</div><div class="met-sub">online team</div></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:280px 1fr;gap:12px">
+      <!-- Trainer list + channel buttons -->
+      <div>
+        <div class="sl">Your team</div>
+        ${DEMO_TRAINERS.map(t => {
+          const unreadFromT = portalState.messages.filter(m=>m.fromId===t.id&&m.unread).length;
+          const roleColor   = t.role==='mentor'?'var(--pnk)':'var(--tel)';
+          const roleBg      = t.role==='mentor'?'var(--pkbg)':'var(--tebg)';
+          return `
+            <div class="msg-item ${unreadFromT?'unread':''}" onclick="openTrainerChannel('${t.id}')"
+              style="${activeTrainerMsg===t.id?'border-color:var(--acc);background:var(--accbg)':''}">
+              <div class="msg-avatar" style="background:${roleBg};color:${roleColor}">${t.avatar}</div>
+              <div class="msg-preview">
+                <div class="msg-name">${t.name}</div>
+                <div class="msg-text">${t.specialty}</div>
+              </div>
+              <div class="msg-meta">
+                ${unreadFromT?`<span style="background:var(--acc);color:#fff;border-radius:50%;width:16px;height:16px;display:inline-flex;align-items:center;justify-content:center;font-size:9px">${unreadFromT}</span>`:''}
+                <div style="font-size:9px;color:var(--t3)">${t.sessions} sessions</div>
+              </div>
+            </div>`;
+        }).join('')}
+
+        <div style="margin-top:10px">
+          <div class="sl">Broadcast</div>
+          <button class="btn btn-a" style="width:100%;margin-bottom:6px" onclick="broadcastToAll()">📢 Message all trainers</button>
+          <button class="btn btn-sm" style="width:100%" onclick="broadcastCohort()">📢 Message by cohort</button>
+        </div>
+      </div>
+
+      <!-- Message thread -->
+      <div id="trainer-thread">
+        ${activeTrainerMsg ? renderTrainerThread(activeTrainerMsg) : `
+          <div class="card" style="text-align:center;padding:40px">
+            <div style="font-size:28px;margin-bottom:8px">💬</div>
+            <div class="card-title">Select a trainer to open channel</div>
+            <div class="card-sub">Private communication channel between you and each trainer/mentor</div>
+          </div>`}
+      </div>
+    </div>`;
+}
+
+function renderTrainerThread(trainerId) {
+  const t = DEMO_TRAINERS.find(x=>x.id===trainerId);
+  if (!t) return '';
+  const msgs = portalState.messages.filter(m=>m.fromId===trainerId||m.to===t.name).sort((a,b)=>a.id.localeCompare(b.id));
+  const roleColor = t.role==='mentor'?'var(--pnk)':'var(--tel)';
+  const roleBg    = t.role==='mentor'?'var(--pkbg)':'var(--tebg)';
+  return `
+    <div class="card" style="display:flex;flex-direction:column;height:480px;padding:0;overflow:hidden">
+      <!-- Thread header -->
+      <div style="padding:12px 16px;border-bottom:1px solid var(--br);display:flex;align-items:center;gap:10px;background:var(--bg3)">
+        <div style="width:36px;height:36px;border-radius:50%;background:${roleBg};color:${roleColor};display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700">${t.avatar}</div>
+        <div style="flex:1">
+          <div style="font-size:12px;font-weight:700;color:var(--t)">${t.name}</div>
+          <div style="font-size:10px;color:var(--t3)">${t.role} · ${t.specialty} · ${t.city}</div>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-sm" onclick="emailTrainer('${t.email}','${t.name}')">📧 Email</button>
+          <button class="btn btn-sm" onclick="bookApptTrainer('${t.id}','${t.name}')">📅 Schedule</button>
+          <button class="btn btn-sm btn-a" onclick="navigate('trainers')">View profile</button>
+        </div>
+      </div>
+
+      <!-- Messages -->
+      <div id="trainer-chat-msgs" style="flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px">
+        ${msgs.length ? msgs.map(m => {
+          const isFrom = m.fromId === trainerId;
+          return `
+            <div style="display:flex;flex-direction:column;align-items:${isFrom?'flex-start':'flex-end'}">
+              <div style="font-size:9px;color:var(--t4);margin-bottom:2px">${isFrom?t.name:'You'} · ${m.time}</div>
+              <div style="max-width:80%;padding:9px 12px;border-radius:${isFrom?'4px 12px 12px 12px':'12px 4px 12px 12px'};
+                background:${isFrom?'var(--bg3)':'var(--accbg)'};
+                border:1px solid ${isFrom?'var(--br)':'rgba(108,92,231,.2)'};
+                color:${isFrom?'var(--t)':'var(--acc2)'};font-size:12px;line-height:1.65">
+                <div style="font-size:10px;font-weight:600;margin-bottom:3px;opacity:.7">${m.subject}</div>
+                ${m.body}
+              </div>
+            </div>`;
+        }).join('') : `<div style="text-align:center;color:var(--t3);font-size:11px;padding:20px">No messages yet — start the conversation below</div>`}
+      </div>
+
+      <!-- Reply box -->
+      <div style="padding:12px;border-top:1px solid var(--br);background:var(--bg3)">
+        <div style="display:flex;gap:8px;align-items:flex-end">
+          <textarea id="trainer-reply-${trainerId}" placeholder="Message ${t.name}…" style="flex:1;min-height:52px;max-height:100px;background:var(--bg2);border:1px solid var(--br);border-radius:6px;color:var(--t);font-size:12px;padding:8px;outline:none;resize:none;font-family:var(--font-body)"></textarea>
+          <div style="display:flex;flex-direction:column;gap:5px">
+            <button class="btn btn-primary btn-sm" onclick="sendTrainerReply('${trainerId}','${t.name}')">Send</button>
+            <button class="btn btn-sm" onclick="emailTrainer('${t.email}','${t.name}')">Email</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+
+
+// ── Trainer / Cohort Actions ──────────────────────────────
+function openTrainerProfile(id) {
+  currentTrainer = id;
+  navigate('trainers');
+}
+
+function msgTrainer(id, name) {
+  activeTrainerMsg = id;
+  navigate('trainercomm');
+}
+
+function emailTrainer(email, name) {
+  navigate('compose');
+  setTimeout(() => {
+    const to = document.getElementById('email-to');
+    if (to) to.value = email;
+  }, 100);
+}
+
+function bookApptTrainer(id, name) {
+  navigate('appointments');
+  setTimeout(() => {
+    const sel = document.getElementById('appt-founder');
+    if (sel) {
+      const opt = document.createElement('option');
+      opt.value = id; opt.textContent = name + ' (Trainer)';
+      sel.appendChild(opt);
+      sel.value = id;
+    }
+  }, 100);
+}
+
+function openTrainerChannel(trainerId) {
+  activeTrainerMsg = trainerId;
+  const t = DEMO_TRAINERS.find(x=>x.id===trainerId);
+  // Mark messages as read
+  portalState.messages.filter(m=>m.fromId===trainerId).forEach(m=>{ m.unread=false; });
+  portalState.saveMessages();
+  const thread = document.getElementById('trainer-thread');
+  if (thread) thread.innerHTML = renderTrainerThread(trainerId);
+  // Update sidebar badge
+  document.querySelectorAll('.nav-item').forEach(n => {
+    n.className = 'nav-item' + (n.getAttribute('onclick')?.includes("'trainercomm'") ? ' active' : '');
+  });
+}
+
+function sendTrainerReply(trainerId, trainerName) {
+  const ta = document.getElementById('trainer-reply-' + trainerId);
+  const body = ta?.value?.trim();
+  if (!body) return;
+  const msg = {
+    id: 'tm_'+Date.now(), from:'Admin', fromId:'admin', to:trainerName,
+    subject:'Message from Admin', body, time:'Just now', unread:false, avatar:'AD', type:'trainer',
+  };
+  portalState.messages.unshift(msg);
+  portalState.saveMessages();
+  if (ta) ta.value = '';
+  const thread = document.getElementById('trainer-thread');
+  if (thread) thread.innerHTML = renderTrainerThread(trainerId);
+  const msgs = document.getElementById('trainer-chat-msgs');
+  if (msgs) msgs.scrollTop = msgs.scrollHeight;
+}
+
+function openAddFounderToCohort(cohortId) {
+  const modal = document.getElementById('add-founder-modal');
+  const sel   = document.getElementById('modal-cohort-sel');
+  if (modal) modal.style.display = '';
+  if (sel)   sel.value = cohortId;
+  modal?.scrollIntoView({ behavior:'smooth' });
+}
+
+function openAddTrainerToCohort(trainerOrCohortId) {
+  const modal = document.getElementById('add-trainer-modal');
+  if (modal) modal.style.display = '';
+  // Pre-select if it looks like a trainer id
+  const tsel = document.getElementById('modal-trainer-sel');
+  const csel = document.getElementById('modal-trainer-cohort-sel');
+  if (tsel && DEMO_TRAINERS.find(t=>t.id===trainerOrCohortId)) tsel.value = trainerOrCohortId;
+  if (csel && DEMO_COHORTS.find(c=>c.id===trainerOrCohortId)) csel.value = trainerOrCohortId;
+  modal?.scrollIntoView({ behavior:'smooth' });
+}
+
+function openAssignFounderToTrainer(trainerId, trainerName) {
+  const modal = document.getElementById('assign-founder-trainer-modal');
+  const sel   = document.getElementById('aff-trainer-sel');
+  if (modal) modal.style.display = '';
+  if (sel)   sel.value = trainerId;
+  modal?.scrollIntoView({ behavior:'smooth' });
+}
+
+function closeModal2() {
+  ['add-founder-modal','add-trainer-modal','assign-founder-trainer-modal'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+}
+
+function assignFounderToCohort() {
+  const fId  = document.getElementById('modal-founder-sel')?.value;
+  const cId  = document.getElementById('modal-cohort-sel')?.value;
+  const res  = document.getElementById('assign-founder-result');
+  if (!fId || !cId) { if (res) { res.textContent='Select both founder and cohort'; res.style.color='var(--red)'; } return; }
+  const cohort = DEMO_COHORTS.find(c=>c.id===cId);
+  const founder= DEMO_FOUNDERS.find(f=>f.id===fId);
+  if (cohort && !cohort.founders.includes(fId)) {
+    cohort.founders.push(fId);
+    if (res) { res.style.color='var(--grn)'; res.textContent = founder.name + ' added to ' + cohort.name.split(' — ')[0]; }
+    setTimeout(() => { closeModal2(); navigate('cohorts'); }, 1200);
+  } else {
+    if (res) { res.style.color='var(--amb)'; res.textContent='Already in this cohort'; }
+  }
+}
+
+function assignTrainerToCohort() {
+  const tId = document.getElementById('modal-trainer-sel')?.value;
+  const cId = document.getElementById('modal-trainer-cohort-sel')?.value;
+  const res = document.getElementById('assign-trainer-result');
+  if (!tId || !cId) { if (res) { res.textContent='Select both'; res.style.color='var(--red)'; } return; }
+  const trainer = DEMO_TRAINERS.find(t=>t.id===tId);
+  const cohort  = DEMO_COHORTS.find(c=>c.id===cId);
+  if (trainer && cohort && !trainer.cohorts.includes(cId)) {
+    trainer.cohorts.push(cId);
+    if (!cohort.trainers.includes(tId)) cohort.trainers.push(tId);
+    if (res) { res.style.color='var(--grn)'; res.textContent = trainer.name + ' assigned to ' + cohort.name.split(' — ')[0]; }
+    setTimeout(() => { closeModal2(); navigate('cohorts'); }, 1200);
+  } else {
+    if (res) { res.style.color='var(--amb)'; res.textContent='Already assigned'; }
+  }
+}
+
+function assignFounderToTrainer() {
+  const tId = document.getElementById('aff-trainer-sel')?.value;
+  const fId = document.getElementById('aff-founder-sel')?.value;
+  const res = document.getElementById('aff-result');
+  if (!tId || !fId) { if (res) { res.textContent='Select both'; res.style.color='var(--red)'; } return; }
+  const trainer = DEMO_TRAINERS.find(t=>t.id===tId);
+  const founder = DEMO_FOUNDERS.find(f=>f.id===fId);
+  if (trainer && founder && !trainer.founders.includes(fId)) {
+    trainer.founders.push(fId);
+    if (res) { res.style.color='var(--grn)'; res.textContent = founder.name + ' assigned to ' + trainer.name; }
+    setTimeout(() => { closeModal2(); navigate('trainers'); }, 1200);
+  } else {
+    if (res) { res.style.color='var(--amb)'; res.textContent='Already assigned'; }
+  }
+}
+
+function createCohort() {
+  const name  = document.getElementById('new-cohort-name')?.value?.trim();
+  const desc  = document.getElementById('new-cohort-desc')?.value?.trim();
+  const start = document.getElementById('new-cohort-start')?.value;
+  const cap   = parseInt(document.getElementById('new-cohort-cap')?.value || '12');
+  const res   = document.getElementById('cohort-create-result');
+  if (!name) { if(res){res.textContent='Enter a name';res.style.color='var(--red)';}return; }
+  const id = 'c_'+Date.now();
+  DEMO_COHORTS.push({ id, name, description:desc||'', startDate:start||'TBD', endDate:'TBD', status:'planning', capacity:cap, founders:[], trainers:[], stage:'Not started' });
+  if (res) { res.style.color='var(--grn)'; res.textContent='✓ Cohort created!'; }
+  setTimeout(() => navigate('cohorts'), 1200);
+}
+
+function addTrainer() {
+  const name  = document.getElementById('new-trainer-name')?.value?.trim();
+  const email = document.getElementById('new-trainer-email')?.value?.trim();
+  const phone = document.getElementById('new-trainer-phone')?.value?.trim();
+  const role  = document.getElementById('new-trainer-role')?.value || 'trainer';
+  const spec  = document.getElementById('new-trainer-spec')?.value?.trim();
+  const city  = document.getElementById('new-trainer-city')?.value?.trim();
+  const bio   = document.getElementById('new-trainer-bio')?.value?.trim();
+  const res   = document.getElementById('trainer-add-result');
+  if (!name || !email) { if(res){res.textContent='Name and email required';res.style.color='var(--red)';}return; }
+  const avatar = name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  const id = 't_'+Date.now();
+  DEMO_TRAINERS.push({ id, name, email, phone:phone||'', role, specialty:spec||'', cohorts:[], founders:[], sessions:0, rating:null, city:city||'', avatar, status:'onboarding', joinDate:new Date().toISOString().slice(0,10), bio:bio||'' });
+  if (res) { res.style.color='var(--grn)'; res.textContent='✓ '+name+' added to team!'; }
+  setTimeout(() => navigate('trainers'), 1200);
+}
+
+function sendTrainerWelcome() {
+  addTrainer();
+  const email = document.getElementById('new-trainer-email')?.value?.trim();
+  const name  = document.getElementById('new-trainer-name')?.value?.trim();
+  if (email && name) {
+    navigate('compose');
+    setTimeout(() => {
+      const to   = document.getElementById('email-to');
+      const subj = document.getElementById('email-subject');
+      const body = document.getElementById('email-body');
+      if (to)   to.value   = email;
+      if (subj) subj.value = 'Welcome to the LaunchOS™ Mentor/Trainer Team!';
+      if (body) body.value = `Dear ${name},\n\nWelcome to the LaunchOS™ Startup Accelerator team! We are thrilled to have you on board as a ${document.getElementById('new-trainer-role')?.value||'trainer'}.\n\nYour access to the Admin Portal will be shared shortly. Here is what to expect:\n\n1. You will be assigned to a cohort within the next 48 hours\n2. A programme induction call is scheduled for your first week\n3. All programme materials and frameworks (BMC, SPARC™, VSL guides) will be shared via the platform\n\nFor any questions, reply to this email or use the Trainer Communication channel in the Admin Portal.\n\nLooking forward to working with you!\n\nWith warmth,\nThe LaunchOS™ Admin Team`;
+    }, 200);
+  }
+}
+
+function broadcastToAll() {
+  navigate('compose');
+  setTimeout(() => {
+    const to = document.getElementById('email-to');
+    if (to) to.value = DEMO_TRAINERS.map(t=>t.email).join(', ');
+    const subj = document.getElementById('email-subject');
+    if (subj) subj.value = '[All Trainers] Programme Update';
+  }, 100);
+}
+
+function broadcastCohort() {
+  const cohortId = prompt('Enter cohort name to filter (or leave blank for all):', '');
+  const cohort = cohortId ? DEMO_COHORTS.find(c=>c.name.toLowerCase().includes(cohortId.toLowerCase())) : null;
+  const trainerIds = cohort ? cohort.trainers : DEMO_TRAINERS.map(t=>t.id);
+  const emails = DEMO_TRAINERS.filter(t=>trainerIds.includes(t.id)).map(t=>t.email).join(', ');
+  navigate('compose');
+  setTimeout(() => {
+    const to = document.getElementById('email-to');
+    if (to) to.value = emails;
+    const subj = document.getElementById('email-subject');
+    if (subj) subj.value = `[${cohort?cohort.name.split(' — ')[0]:'All Trainers'}] Update`;
+  }, 100);
+}
+
+
+// ═══════════════════════════════════════════════════════════
+// ACTIONS
+// ═══════════════════════════════════════════════════════════
+function navigate(panelId) {
+  portalState.currentPanel = panelId;
+  document.querySelectorAll('.nav-item').forEach(n => {
+    n.className = 'nav-item' + (n.getAttribute('onclick')?.includes(`'${panelId}'`) ? ' active' : '');
+  });
+  document.getElementById('topbar-title').textContent = PANEL_TITLES[panelId] || panelId;
+
+  const panels = {
+    dashboard:    renderDashboard,
+    founders:     renderFounders,
+    progress:     renderProgress,
+    inbox:        () => { activeMessage = null; return renderInbox(); },
+    compose:      renderCompose,
+    appointments: renderAppointments,
+    calendar:     renderCalendar,
+    trainers:     renderTrainers,
+    cohorts:      renderCohorts,
+    trainercomm:  renderTrainerComm,
+    reports:      renderReports,
+    settings:     renderSettings,
+  };
+
+  const content = document.getElementById('content');
+  if (content && panels[panelId]) {
+    content.innerHTML = `<div class="panel active">${panels[panelId]()}</div>`;
+  }
+}
+
+function openMessage(id) {
+  activeMessage = id;
+  const m = portalState.messages.find(x=>x.id===id);
+  if (m) m.unread = false;
+  portalState.saveMessages();
+  navigate('inbox');
+  // After navigate re-renders inbox, highlight selected message
+  setTimeout(() => {
+    const msgView = document.getElementById('msg-view');
+    if (msgView) msgView.innerHTML = renderMessageDetail(id);
+  }, 50);
+}
+
+function openFounder(id) {
+  portalState.currentFounder = id;
+  navigate('progress');
+}
+
+function setCurrentFounder(id) {
+  portalState.currentFounder = id;
+  navigate('progress');
+}
+
+function quickMsg(founderId, founderName) {
+  navigate('inbox');
+  setTimeout(() => {
+    const msgView = document.getElementById('msg-view');
+    if (msgView) msgView.innerHTML = `
+      <div class="card">
+        <div class="card-title">New message to ${founderName}</div>
+        <textarea id="quick-msg-body" placeholder="Type your message…" style="min-height:100px;margin:10px 0"></textarea>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-primary" onclick="sendQuickMsg('${founderId}','${founderName}')">Send</button>
+          <button class="btn btn-sm" onclick="sendEmailToFounder('','${founderName}')">Send via email</button>
+        </div>
+      </div>`;
+  }, 50);
+}
+
+function sendQuickMsg(founderId, founderName) {
+  const body = document.getElementById('quick-msg-body')?.value?.trim();
+  if (!body) return;
+  const msg = {
+    id: 'm_'+Date.now(), from:'Mentor/Admin', fromId:'admin', to:founderName,
+    subject:'Message from your mentor', body, time:'Just now', unread:false,
+    avatar:'ME',
+  };
+  portalState.messages.unshift(msg);
+  portalState.saveMessages();
+  navigate('inbox');
+}
+
+function replyToMessage(msgId) {
+  const m = portalState.messages.find(x=>x.id===msgId);
+  const body = document.getElementById('reply-body')?.value?.trim();
+  if (!body) return;
+  const reply = {
+    id: 'm_'+Date.now(), from:'Mentor/Admin', fromId:'admin', to:m.from,
+    subject:'Re: '+m.subject, body, time:'Just now', unread:false, avatar:'ME',
+  };
+  portalState.messages.unshift(reply);
+  portalState.saveMessages();
+  showFeedback('Reply sent!');
+  navigate('inbox');
+}
+
+function bookAppt(founderId, founderName) {
+  navigate('appointments');
+  setTimeout(() => {
+    const sel = document.getElementById('appt-founder');
+    if (sel) sel.value = founderId;
+  }, 100);
+}
+
+function bookApptFromMsg(founderId, founderName) {
+  navigate('appointments');
+  setTimeout(() => {
+    const sel = document.getElementById('appt-founder');
+    if (sel) sel.value = founderId;
+  }, 100);
+}
+
+function bookAppointment() {
+  const sel      = document.getElementById('appt-founder');
+  const founderId = sel?.value;
+  const founderName = sel?.options[sel.selectedIndex]?.dataset?.name || '';
+  const type    = document.getElementById('appt-type')?.value;
+  const date    = document.getElementById('appt-date')?.value;
+  const time    = document.getElementById('appt-time')?.value;
+  const dur     = document.getElementById('appt-dur')?.value;
+  const notes   = document.getElementById('appt-notes')?.value;
+  if (!founderId || !date || !time) { showFeedback('Please select a founder, date and time.', false); return; }
+  const appt = { id:'a_'+Date.now(), founderId, founderName, type, date, time, duration:parseInt(dur), status:'pending', notes };
+  portalState.appointments.push(appt);
+  portalState.saveAppts();
+  const result = document.getElementById('appt-result');
+  if (result) result.textContent = '✓ Appointment booked!';
+  navigate('appointments');
+}
+
+function confirmAppt(id) {
+  const a = portalState.appointments.find(x=>x.id===id);
+  if (a) { a.status = 'confirmed'; portalState.saveAppts(); navigate('appointments'); }
+}
+
+function cancelAppt(id) {
+  if (!confirm('Cancel this appointment?')) return;
+  portalState.appointments = portalState.appointments.filter(x=>x.id!==id);
+  portalState.saveAppts();
+  navigate('appointments');
+}
+
+function calNav(dir) {
+  portalState.calMonth += dir;
+  if (portalState.calMonth > 11) { portalState.calMonth = 0; portalState.calYear++; }
+  if (portalState.calMonth < 0)  { portalState.calMonth = 11; portalState.calYear--; }
+  navigate('calendar');
+}
+
+function openCalDay(date) {
+  const appts = portalState.appointments.filter(a=>a.date===date);
+  if (appts.length === 0) {
+    if (confirm(`No appointments on ${date}. Book one?`)) {
+      navigate('appointments');
+      setTimeout(() => { const d = document.getElementById('appt-date'); if (d) d.value = date; }, 100);
+    }
+  } else {
+    alert(appts.map(a=>`${a.time} — ${a.founderName}: ${a.type}`).join('\n'));
+  }
+}
+
+function setEmailProvider(id) {
+  portalState.emailProvider = id;
+  localStorage.setItem('los_email_prov', id);
+  navigate('compose');
+}
+
+function sendEmailToFounder(email, name) {
+  document.getElementById('email-to')?.setAttribute('value', email);
+  navigate('compose');
+  setTimeout(() => {
+    const to = document.getElementById('email-to');
+    if (to) to.value = email;
+  }, 100);
+}
+
+function openCompose() { navigate('compose'); }
+
+const EMAIL_TEMPLATES = {
+  welcome: { subject:'Welcome to LaunchOS™ Startup Accelerator!', body:'Dear [Name],\n\nWelcome to the LaunchOS™ Startup Accelerator programme! We are thrilled to have you on this journey.\n\nYour first step is to complete the 4 Founder Assessments and begin your Business Model Canvas (BMC). Your personalised AI coach is ready whenever you are.\n\nIf you have any questions, reply to this email or send a message through the platform.\n\nWith belief in your potential,\nYour Mentor\nLaunchOS™ Programme' },
+  progress: { subject:'Programme Progress Check-In — How are you doing?', body:'Hi [Name],\n\nI wanted to check in on your programme progress. I can see you are on Stage [X] — great work getting this far!\n\nA few things I noticed that could help:\n1. Your BMC is [X]% complete — let\'s get to 100% this week\n2. Survey responses: [X]/100 — keep collecting!\n3. Your SPARC™ script is ready to practice\n\nShall we schedule a quick 30-minute call to review?\n\nBest,\nYour Mentor' },
+  survey: { subject:'Action needed: Collect 30 survey responses (minimum)', body:'Hi [Name],\n\nA reminder that your MVP Market Validation Survey needs a minimum of 30 responses before the AI analysis unlocks — and 100 for statistically meaningful results.\n\nYou currently have [X] responses. Here\'s how to get to 30 fast:\n• Post in 3 relevant WhatsApp groups today\n• Send 20 personal LinkedIn DMs\n• Ask your existing network to forward it\n\nThe validation step is non-negotiable — it protects you from building something nobody wants.\n\nYour survey is ready in the platform under MVP Market Validation Survey.\n\nYour Mentor' },
+  appt: { subject:'Appointment Confirmed — [Date] at [Time]', body:'Hi [Name],\n\nYour appointment with your mentor is confirmed:\n\nDate: [Date]\nTime: [Time]\nDuration: [X] minutes\nTopic: [Type]\n\nPlease come prepared with:\n• Your current progress in LaunchOS™\n• Specific questions or areas where you are stuck\n• Any scripts or documents you want to review\n\nLooking forward to our session!\n\nYour Mentor' },
+  bmc: { subject:'Your BMC is [X]% complete — let\'s finish it this week', body:'Hi [Name],\n\nYour Business Model Canvas is your foundation. Every script, every sales call, and every investor conversation flows from what you build here.\n\nRight now it\'s [X]% complete. Here\'s what\'s missing:\n[List missing steps]\n\nThe new steps 11–16 (Past Failures, Cost of Inaction, Founder Story, Social Proof, Decision-Makers, Objections) directly feed your SPARC™ script — so completing them makes your sales calls dramatically more powerful.\n\nTake 30 minutes today to complete 2–3 more steps.\n\nYour Mentor' },
+  sparc: { subject:'Your SPARC™ script is ready for review', body:'Hi [Name],\n\nI have reviewed your SPARC™ sales script and have some feedback.\n\nOverall: [Strong / Needs work]\n\nSpecific feedback:\n• S — Surface: [Notes]\n• P — Probe: [Notes]\n• A — Amplify: [Notes]\n• R — Resolve: [Notes]\n• C — Close: [Notes]\n\nLet\'s schedule a 45-minute roleplay session where you play the closer and I play the prospect. This is the fastest way to get your script to a 90%+ close rate.\n\nYour Mentor' },
+  congrats: { subject:'🎉 Congratulations — Stage [X] Complete!', body:'Hi [Name],\n\nI wanted to take a moment to celebrate with you — you have just completed Stage [X] of the LaunchOS™ programme!\n\nThis is a significant milestone. You have:\n✓ [List of achievements from this stage]\n\nYour next stage: [Next stage name and what to expect]\n\nKeep going. The founders who make it to launch are the ones who show up consistently, just like you are doing.\n\nProud of your progress,\nYour Mentor' },
+};
+
+function loadEmailTemplate(key) {
+  if (!key || !EMAIL_TEMPLATES[key]) return;
+  const t = EMAIL_TEMPLATES[key];
+  const subj = document.getElementById('email-subject');
+  const body = document.getElementById('email-body');
+  if (subj) subj.value = t.subject;
+  if (body) body.value = t.body;
+}
+
+function sendEmail() {
+  const to      = document.getElementById('email-to')?.value?.trim();
+  const subject = encodeURIComponent(document.getElementById('email-subject')?.value || '');
+  const body    = encodeURIComponent(document.getElementById('email-body')?.value || '');
+  const prov    = portalState.emailProvider || 'mailto';
+  const provDef = EMAIL_PROVIDERS.find(p=>p.id===prov) || EMAIL_PROVIDERS[EMAIL_PROVIDERS.length-1];
+  const url = provDef.url.replace('{to}',encodeURIComponent(to||'')).replace('{subject}',subject).replace('{body}',body);
+  window.open(url, '_blank');
+  const result = document.getElementById('email-result');
+  if (result) result.textContent = '✓ Opening ' + provDef.name + '…';
+}
+
+async function aiDraftEmail() {
+  const to      = document.getElementById('email-to')?.value || '';
+  const subject = document.getElementById('email-subject')?.value || '';
+  const body    = document.getElementById('email-body');
+  const apiKey  = localStorage.getItem('los_ai_key');
+  if (!apiKey) { alert('Set your AI provider key first in the main LaunchOS™ app under AI Settings.'); return; }
+  if (body) body.value = 'AI drafting…';
+  const prompt = `You are a startup programme mentor. Draft a professional, warm, and specific email.
+To: ${to}
+Subject: ${subject}
+Context: This is for a startup accelerator programme called LaunchOS™. The mentor is helping a startup founder.
+Write the full email body only. Plain text. Warm but professional. 150-250 words.`;
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:600,messages:[{role:'user',content:prompt}]}),
+    });
+    const data = await response.json();
+    if (body) body.value = data.content?.[0]?.text || 'Could not generate draft.';
+  } catch(e) {
+    if (body) body.value = 'AI draft failed — check your API key.';
+  }
+}
+
+function sendCalendarInvite() {
+  const date    = document.getElementById('appt-date')?.value;
+  const time    = document.getElementById('appt-time')?.value;
+  const type    = document.getElementById('appt-type')?.value || 'Session';
+  const dur     = parseInt(document.getElementById('appt-dur')?.value || '60');
+  if (!date || !time) { alert('Please fill date and time first'); return; }
+  const dtStart = date.replace(/-/g,'') + 'T' + time.replace(':','') + '00';
+  const dtEnd   = (() => {
+    const d = new Date(date + 'T' + time); d.setMinutes(d.getMinutes()+dur);
+    return d.toISOString().replace(/[-:]/g,'').slice(0,15);
+  })();
+  const gcUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent('LaunchOS™: '+type)}&dates=${dtStart}/${dtEnd}&details=${encodeURIComponent('LaunchOS™ Startup Accelerator — '+type)}&sf=true&output=xml`;
+  window.open(gcUrl, '_blank');
+}
+
+function saveNotes(founderId) {
+  const notes = document.getElementById('mentor-notes-'+founderId)?.value;
+  localStorage.setItem('notes_'+founderId, notes||'');
+  showFeedback('Notes saved!');
+}
+
+function exportReport() {
+  const win = window.open('','_blank','width=900,height=700');
+  win.document.write(`<!DOCTYPE html><html><head>
+    <title>LaunchOS™ Cohort Report</title>
+    <style>body{font-family:Arial,sans-serif;padding:32px;color:#111}h1{color:#6c5ce7}table{width:100%;border-collapse:collapse}th{background:#6c5ce7;color:#fff;padding:8px;text-align:left;font-size:11px}td{padding:8px;border-bottom:1px solid #eee;font-size:12px}</style>
+    </head><body>
+    <h1>LaunchOS™ — Cohort Progress Report</h1>
+    <p>Generated: ${new Date().toLocaleDateString()}</p>
+    <table><thead><tr><th>Founder</th><th>Business</th><th>City</th><th>Stage</th><th>BMC %</th><th>Score</th><th>Survey</th><th>Status</th></tr></thead>
+    <tbody>''}</tbody>
+    </table></body></html>`);
+  win.document.close();
+  setTimeout(() => win.print(), 600);
+}
+
+function filterFounders(val) {
+  const search = (val||document.getElementById('founder-search')?.value||'').toLowerCase();
+  const filter = document.getElementById('founder-filter')?.value || 'all';
+  const grid = document.getElementById('founders-grid');
+  if (!grid) return;
+  const filtered = DEMO_FOUNDERS.filter(f => {
+    const matchSearch = !search || f.name.toLowerCase().includes(search) || f.business.toLowerCase().includes(search) || f.city.toLowerCase().includes(search);
+    const matchFilter = filter==='all' || f.status===filter;
+    return matchSearch && matchFilter;
+  });
+  grid.innerHTML = filtered.map(f=>renderFounderCard(f)).join('') || '<div style="color:var(--t3);padding:20px">No founders match your search</div>';
+}
+
+function showFeedback(msg, ok=true) {
+  const div = document.createElement('div');
+  div.style.cssText = `position:fixed;bottom:20px;right:20px;background:${ok?'var(--gnbg)':'var(--rebg)'};border:1px solid ${ok?'rgba(0,230,118,.3)':'rgba(239,83,80,.3)'};color:${ok?'var(--grn)':'var(--red)'};border-radius:8px;padding:10px 16px;font-size:12px;font-weight:600;z-index:9999;transition:opacity .3s`;
+  div.textContent = msg;
+  document.body.appendChild(div);
+  setTimeout(() => { div.style.opacity='0'; setTimeout(()=>div.remove(), 300); }, 2500);
+}
+
+function switchReportTab(tab) {
+  ['founders','trainers','cohorts'].forEach(t => {
+    const div = document.getElementById('rep-'+t);
+    const btn = document.getElementById('rep-tab-'+t);
+    if (div) div.style.display = t===tab ? '' : 'none';
+    if (btn) { btn.className = 'tab-btn' + (t===tab?' active':''); }
+  });
+}
+
+function exportTrainerReport() {
+  const win = window.open('','_blank','width=900,height=700');
+  win.document.write(`<!DOCTYPE html><html><head><title>Trainer Report — LaunchOS™</title>
+    <style>body{font-family:Arial,sans-serif;padding:32px}h1{color:#6c5ce7}table{width:100%;border-collapse:collapse}th{background:#6c5ce7;color:#fff;padding:8px;font-size:11px;text-align:left}td{padding:8px;border-bottom:1px solid #eee;font-size:12px}</style>
+    </head><body>
+    <h1>LaunchOS™ — Trainer & Mentor Report</h1><p>Generated: ${new Date().toLocaleDateString()}</p>
+    <table><thead><tr><th>Name</th><th>Role</th><th>Specialty</th><th>Cohorts</th><th>Founders</th><th>Sessions</th><th>Rating</th><th>Status</th></tr></thead>
+    <tbody>''}</tbody>
+    </table></body></html>`);
+  win.document.close();
+  setTimeout(() => win.print(), 600);
+}
+
+function exportCohortReport() {
+  const win = window.open('','_blank','width=900,height=700');
+  win.document.write(`<!DOCTYPE html><html><head><title>Cohort Report — LaunchOS™</title>
+    <style>body{font-family:Arial,sans-serif;padding:32px}h1{color:#6c5ce7}table{width:100%;border-collapse:collapse}th{background:#6c5ce7;color:#fff;padding:8px;font-size:11px;text-align:left}td{padding:8px;border-bottom:1px solid #eee;font-size:12px}</style>
+    </head><body>
+    <h1>LaunchOS™ — Cohort Summary Report</h1><p>Generated: ${new Date().toLocaleDateString()}</p>
+    <table><thead><tr><th>Cohort</th><th>Status</th><th>Founders</th><th>Capacity</th><th>Trainers</th><th>Dates</th></tr></thead>
+    <tbody>''}</tbody>
+    </table></body></html>`);
+  win.document.close();
+  setTimeout(() => win.print(), 600);
+}
+
+function switchRole() { setRole(portalState.role==='admin'?'mentor':'admin'); }
+function setRole(role) {
+  portalState.role = role;
+  localStorage.setItem('los_portal_role', role);
+  boot();
+}
+
+// ═══════════════════════════════════════════════════════════
+// BOOT
+// ═══════════════════════════════════════════════════════════
+function boot() {
+  const app = document.getElementById('app');
+  app.innerHTML = renderSidebar() + `<div class="main">${renderTopbar()}<div class="content" id="content"></div></div>`;
+  navigate('dashboard');
+  themeSystem.apply(themeSystem.current, false);
+}
+
+document.addEventListener('DOMContentLoaded', boot);
+
+
+// ── Expose all functions to window (IIFE scope fix) ──
+if (typeof navigate !== "undefined") window.navigate = navigate;
+if (typeof switchRole !== "undefined") window.switchRole = switchRole;
+if (typeof setRole !== "undefined") window.setRole = setRole;
+if (typeof openCompose !== "undefined") window.openCompose = openCompose;
+if (typeof openFounder !== "undefined") window.openFounder = openFounder;
+if (typeof openMessage !== "undefined") window.openMessage = openMessage;
+if (typeof quickMsg !== "undefined") window.quickMsg = quickMsg;
+if (typeof bookAppt !== "undefined") window.bookAppt = bookAppt;
+if (typeof bookApptFromMsg !== "undefined") window.bookApptFromMsg = bookApptFromMsg;
+if (typeof saveNotes !== "undefined") window.saveNotes = saveNotes;
+if (typeof sendEmailToFounder !== "undefined") window.sendEmailToFounder = sendEmailToFounder;
+if (typeof replyToMessage !== "undefined") window.replyToMessage = replyToMessage;
+if (typeof sendReply !== "undefined") window.sendReply = sendReply;
+if (typeof sendQuickMsg !== "undefined") window.sendQuickMsg = sendQuickMsg;
+if (typeof bookAppointment !== "undefined") window.bookAppointment = bookAppointment;
+if (typeof sendCalendarInvite !== "undefined") window.sendCalendarInvite = sendCalendarInvite;
+if (typeof confirmAppt !== "undefined") window.confirmAppt = confirmAppt;
+if (typeof cancelAppt !== "undefined") window.cancelAppt = cancelAppt;
+if (typeof openCalDay !== "undefined") window.openCalDay = openCalDay;
+if (typeof calNav !== "undefined") window.calNav = calNav;
+if (typeof setEmailProvider !== "undefined") window.setEmailProvider = setEmailProvider;
+if (typeof sendEmail !== "undefined") window.sendEmail = sendEmail;
+if (typeof aiDraftEmail !== "undefined") window.aiDraftEmail = aiDraftEmail;
+if (typeof loadEmailTemplate !== "undefined") window.loadEmailTemplate = loadEmailTemplate;
+if (typeof exportReport !== "undefined") window.exportReport = exportReport;
+if (typeof filterFounders !== "undefined") window.filterFounders = filterFounders;
+if (typeof boot !== "undefined") window.boot = boot;
+
+// ── Expose all functions to window ──
+var _fns = {renderTrainers,renderTrainerComm,openTrainerChannel,sendTrainerReply,
+  openAddFounderToCohort,openAddTrainerToCohort,openAssignFounderToTrainer,
+  closeModal2,assignFounderToCohort,assignTrainerToCohort,assignFounderToTrainer,
+  createCohort,addTrainer,sendTrainerWelcome,broadcastToAll,broadcastCohort,
+  msgTrainer,emailTrainer,bookApptTrainer,openTrainerProfile,
+  switchReportTab,exportTrainerReport,exportCohortReport,
+  navigate,switchRole,setRole,openCompose,openFounder,openMessage,quickMsg,
+  bookAppt,bookApptFromMsg,saveNotes,sendEmailToFounder,replyToMessage,
+  sendReply,sendQuickMsg,bookAppointment,sendCalendarInvite,confirmAppt,cancelAppt,
+  openCalDay,calNav,setEmailProvider,sendEmail,aiDraftEmail,loadEmailTemplate,
+  exportReport,filterFounders,boot};
+Object.keys(_fns).forEach(function(k){ window[k] = _fns[k]; });
+
+})();
+</script>
+</body>
+</html>
