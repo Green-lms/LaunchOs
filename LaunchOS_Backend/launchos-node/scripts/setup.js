@@ -5,7 +5,8 @@ const Programme = require("../src/models/Programme");
 
 async function setup() {
   console.log("\n LaunchOS Backend Setup\n");
-  await mongoose.connect(process.env.MONGO_URI, { useNewUrlParser:true, useUnifiedTopology:true });
+  if (!process.env.MONGO_URI) throw new Error("MONGO_URI is not set in .env");
+  await mongoose.connect(process.env.MONGO_URI, { serverSelectionTimeoutMS: 15000 });
   console.log("MongoDB connected:", mongoose.connection.host);
 
   await User.createIndexes();
@@ -20,9 +21,9 @@ async function setup() {
   if (existing) {
     console.log("Admin exists:", adminEmail);
   } else {
-    await User.create({ name: process.env.ADMIN_NAME || "LaunchOS Admin", email: adminEmail, password: process.env.ADMIN_PASSWORD || "LaunchOS@2026", role:"admin", status:"active" });
-    console.log("Admin created:", adminEmail, "/ password:", process.env.ADMIN_PASSWORD || "LaunchOS@2026");
-    console.log("CHANGE THIS PASSWORD after first login!");
+    if (!process.env.ADMIN_EMAIL || !process.env.ADMIN_PASSWORD) throw new Error("Set ADMIN_EMAIL and ADMIN_PASSWORD in .env before running setup");
+    await User.create({ name: process.env.ADMIN_NAME || "LaunchOS Admin", email: adminEmail, password: process.env.ADMIN_PASSWORD, role:"admin", status:"active" });
+    console.log("Admin created:", adminEmail, "(password = ADMIN_PASSWORD from .env)");
   }
 
   if (process.env.NODE_ENV !== "production") {

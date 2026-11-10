@@ -13,7 +13,8 @@ router.post('/register', async (req, res) => {
     const { name, email, password, role = 'founder', city, phone, businessName, businessType, specialty, adminKey } = req.body;
     if (!name || !email || !password) return res.status(400).json({ error: 'name, email, password required' });
     if (password.length < 8) return res.status(400).json({ error: 'Password min 8 chars' });
-    if (role !== 'founder' && adminKey !== process.env.ADMIN_PASSWORD)
+    if (!['founder','trainer','admin'].includes(role)) return res.status(400).json({ error: 'Invalid role' });
+    if (role !== 'founder' && (!process.env.ADMIN_INVITE_KEY || adminKey !== process.env.ADMIN_INVITE_KEY))
       return res.status(403).json({ error: 'Admin key required for trainer/admin registration' });
     if (await User.findOne({ email })) return res.status(409).json({ error: 'Email already registered' });
 

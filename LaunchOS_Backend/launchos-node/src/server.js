@@ -98,7 +98,8 @@ const PORT = process.env.PORT || 4000;
 
 async function start() {
   try {
-    await mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
+    if (!process.env.MONGO_URI) throw new Error("MONGO_URI is not set — copy .env.example to .env and add your MongoDB Atlas connection string");
+    await mongoose.connect(process.env.MONGO_URI, { serverSelectionTimeoutMS: 15000 });
     console.log("✓ MongoDB:", mongoose.connection.host);
     wsService.init(server);
     server.listen(PORT, () => {
